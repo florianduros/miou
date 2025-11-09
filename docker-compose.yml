@@ -1,0 +1,20 @@
+services:
+  miou:
+    image: florianduros/miou:latest
+    container_name: miou
+    restart: unless-stopped
+    volumes:
+      # Mount configuration file or/and use environment variables to configure
+      # - ./miou.yaml:/config/miou.yaml
+      - ./data:/data
+    environment:
+      # Set log level, info by default
+      - RUST_LOG=debug
+      # Override configuration via environment variables
+      # Use MIOU_ prefix with double underscores for nested paths
+      - MIOU_TMARS__URL=https://terraforming-mars.herokuapp.com
+      - MIOU_TMARS__SERVER_ID=your-server-id
+      - MIOU_TMARS__POLLING_INTERVAL=120
+      - MIOU_MATRIX__USER_ID=@miou:matrix.org
+      - MIOU_MATRIX__PASSWORD=your-password
+      - MIOU_MATRIX__PASSPHRASE=your-passphrase
