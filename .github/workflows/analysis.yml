@@ -1,0 +1,29 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  analysis:
+    name: Test, Formatting, Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add rustfmt and clippy
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Formatting
+        run: cargo fmt -- --check
+      - name: Linting
+        run: cargo clippy -- -D warnings
+      - name: Run tests
+        run: cargo test
