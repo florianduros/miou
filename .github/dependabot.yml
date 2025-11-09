@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    # Check for updates every Monday
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: rust-toolchain
+    directory: "/"
+    # Check for updates every Monday
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      # Specify a name for the group, which will be used in pull request titles
+      # and branch names
+      dependencies:
+        # Define patterns to include dependencies in the group (based on
+        # dependency name)
+        applies-to: version-updates # Applies the group rule to version updates
+        patterns:
+          - "*" # A wildcard that matches all dependencies in the package
+            # ecosystem. Note: using "*" may open a large pull request
+        # Define patterns to exclude dependencies from the group (based on
+        # dependency name)
+        exclude-patterns:
+          - "matrix-sdk"
+    ignore:
+      # These are peer deps of Cargo and should not be automatically bumped
+      - dependency-name: "semver"
+      - dependency-name: "crates-io"
