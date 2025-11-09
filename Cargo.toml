@@ -1,0 +1,34 @@
+[package]
+authors = ["Florian Duros <florian.duros@ormaz.fr>"]
+name = "miou"
+version = "0.1.0"
+edition = "2024"
+repository = "git@github.com:florianduros/miou.git"
+homepage = "https://github.com/florianduros/miou"
+license = "GNU Affero General Public License v3.0"
+exclude = [".github"]
+
+[[bin]]
+name = "miou"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.53", features = ["derive"] }
+command-parser = "1.0.1"
+env_logger = "0.11.8"
+figment = { version = "0.10", features = ["yaml", "env"] }
+futures = "0.3.31"
+log = "0.4.29"
+matrix-sdk = { version = "0.16.0", features = ["markdown", "bundled-sqlite"] }
+mime = "0.3.17"
+mockall = "0.14.0"
+reqwest = { version = "0.12.25", features = ["json"] }
+serde = "1.0.228"
+serde_json = "1.0.145"
+tokio = { version = "1.47", features = ["macros", "rt-multi-thread"] }
+
+[dev-dependencies]
+mockito = "1.7.1"
+serial_test = "3.0"
+tempfile = "3.8.1"
