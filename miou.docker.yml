@@ -1,0 +1,46 @@
+# Miou Bot Configuration File (Environment Variables Only)
+#
+# This is an example configuration that uses placeholder values in the YAML file
+# and expects all actual configuration to come from environment variables.
+# This is the recommended approach for production deployments.
+#
+# Environment Variable Format:
+#   MIOU_<section>__<key>
+#
+# Note: Use double underscores (__) to separate nested configuration paths.
+#
+# Required Environment Variables:
+#
+# export MIOU_TMARS__URL="https://terraforming-mars.herokuapp.com"
+# export MIOU_TMARS__SERVER_ID="your-server-id"
+# export MIOU_TMARS__POLLING_INTERVAL="120"
+# export MIOU_MATRIX__USER_ID="@miou:matrix.org"
+# export MIOU_MATRIX__PASSWORD="your-secure-password"
+# export MIOU_MATRIX__PASSPHRASE="your-recovery-passphrase"
+#
+# Then run:
+#   miou --config miou.env.yaml --data-path ./data
+
+# TMars Server Configuration
+# All values below will be overridden by environment variables
+tmars:
+  # Override with: MIOU_TMARS__URL
+  url: "http://localhost:9090"
+
+  # Override with: MIOU_TMARS__SERVER_ID
+  server_id: "placeholder"
+
+  # Override with: MIOU_TMARS__POLLING_INTERVAL
+  polling_interval: 120
+
+# Matrix Account Configuration
+# All values below will be overridden by environment variables
+matrix:
+  # Override with: MIOU_MATRIX__USER_ID
+  user_id: "@placeholder:matrix.org"
+
+  # Override with: MIOU_MATRIX__PASSWORD
+  password: "placeholder"
+
+  # Override with: MIOU_MATRIX__PASSPHRASE
+  passphrase: "placeholder"
