@@ -218,8 +218,16 @@ struct Args {
 /// ```
 #[tokio::main]
 async fn main() {
+    if true {
+        if true {
+            println!("hey clippy!")
+        }
+    }
+
+
+   
     // Put logger at info level by default
-    let env = Env::default().filter_or("RUST_LOG", "info");
+   		 let env = Env::default().filter_or("RUST_LOG", "info");
     env_logger::init_from_env(env);
 
     // Parse command line arguments
