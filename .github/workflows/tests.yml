@@ -19,6 +19,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Run tests
-        run: cargo test
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install LLVM tools
+        run: sudo apt-get update && sudo apt-get install -y llvm
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+
+      - id: cache
+        name: Enable Workflow Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: grcov,cargo-llvm-cov
+
+      - id: coverage
+        name: Generate Coverage Report
+        run: |
+          cargo clean
+          cargo llvm-cov --all-features --workspace --codecov --output-path ./codecov.json
+
+      - id: upload
+        name: Upload Coverage Report
+        uses: codecov/codecov-action@v5
+        with:
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ github.workspace }}/codecov.json
+          fail_ci_if_error: true
