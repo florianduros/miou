@@ -1,0 +1,11 @@
+services:
+  miou:
+    image: florianduros/miou:latest
+    container_name: miou
+    restart: unless-stopped
+    volumes:
+      - ./miou.toml:/config/miou.toml
+      - ./data:/data
+    environment:
+      # Set log level, info by default
+      - RUST_LOG=debug
