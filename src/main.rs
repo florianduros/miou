@@ -243,7 +243,9 @@ async fn main() {
         }
     };
 
+    let avatar_bytes = include_bytes!("../assets/miou.png");
+
     // Launch bot
-    let bot = Bot::new(config, args).await.unwrap();
+    let bot = Bot::new(config, args, avatar_bytes).await.unwrap();
     bot.start().await;
 }

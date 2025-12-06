@@ -260,7 +260,11 @@ impl Bot {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn new(config: Config, args: Args) -> Result<Self, anyhow::Error> {
+    pub async fn new(
+        config: Config,
+        args: Args,
+        avatar_bytes: &[u8],
+    ) -> Result<Self, anyhow::Error> {
         // Create tmars services
         let tmars_requester = TMarsRequester::new(&config.tmars.url, &config.tmars.server_id);
         let tmars_sync = Arc::new(Mutex::new(TMarsSync::new(tmars_requester)));
@@ -274,6 +278,7 @@ impl Bot {
                     passphrase: config.matrix.passphrase,
                 },
                 &get_path(&args.data_path, "session"),
+                avatar_bytes,
             )
             .await?,
         );

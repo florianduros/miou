@@ -3,7 +3,7 @@
 //! This module provides a high-level [`MatrixClient`] interface that wraps the
 //! Matrix SDK client and handles message sending, synchronization, and session management.
 
-use log::{error, info};
+use log::{error, info, warn};
 use matrix_sdk::{
     Client,
     ruma::{
@@ -42,6 +42,7 @@ impl MatrixClient {
     ///
     /// * `user_credentials` - User credentials containing user ID, password, and passphrase
     /// * `session_path` - Directory path for storing session data and SQLite database
+    /// * `avatar_bytes` - Byte slice containing the PNG image data for the bot's avatar
     ///
     /// # Returns
     ///
@@ -66,13 +67,15 @@ impl MatrixClient {
     ///     passphrase: "secure_passphrase".to_string(),
     /// };
     ///
-    /// let client = MatrixClient::new(&credentials, "./session".to_string()).await?;
+    /// let avatar_bytes = include_bytes!("../../assets/miou.png");
+    /// let client = MatrixClient::new(&credentials, "./session", avatar_bytes).await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn new(
         user_credentials: &UserCredentials,
         session_path: &str,
+        avatar_bytes: &[u8],
     ) -> Result<Self, anyhow::Error> {
         let matrix_session_result = MatrixSession::new(session_path).await;
         if matrix_session_result.is_err() {
@@ -87,6 +90,19 @@ impl MatrixClient {
             return Err(anyhow::anyhow!("failed to setup matrix client"));
         }
         let client = client_result.unwrap();
+
+        // Set display name
+        client.account().set_display_name(Some("Miou")).await?;
+
+        // Set avatar if not already set
+        if client.account().get_avatar_url().await?.is_none()
+            && let Err(e) = client
+                .account()
+                .upload_avatar(&mime::IMAGE_PNG, avatar_bytes.to_vec())
+                .await
+        {
+            warn!("failed to upload avatar: {:?}", e);
+        }
 
         let matrix_sync = MatrixSync::new(&client, &matrix_session);
 

@@ -149,9 +149,6 @@ impl MatrixSync {
     {
         info!("start syncing");
 
-        // Set display name
-        self.client.account().set_display_name(Some("Miou")).await?;
-
         // Auto join rooms when invited
         self.client.add_event_handler(auto_join_rooms);
 

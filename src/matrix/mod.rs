@@ -25,7 +25,8 @@
 //!     passphrase: "recovery_phrase".to_string(),
 //! };
 //!
-//! let client = MatrixClient::new(&credentials, "./session".to_string()).await?;
+//! let avatar_bytes = include_bytes!("../../assets/miou.png");
+//! let client = MatrixClient::new(&credentials, "./session", avatar_bytes).await?;
 //! # Ok(())
 //! # }
 //! ```
