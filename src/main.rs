@@ -218,6 +218,8 @@ struct Args {
 /// ```
 #[tokio::main]
 async fn main() {
+    // Trigger CI
+
     // Put logger at info level by default
     let env = Env::default().filter_or("RUST_LOG", "info");
     env_logger::init_from_env(env);
