@@ -29,5 +29,5 @@ tokio = { version = "1.47", features = ["macros", "rt-multi-thread"] }
 toml = "0.9.8"
 
 [dev-dependencies]
-mockito = "1.7.0"
+mockito = "1.7.1"
 tempfile = "3.8.1"
