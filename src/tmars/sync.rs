@@ -423,6 +423,15 @@ mod tests {
     use crate::tmars::requester::MockRequester;
     use crate::tmars::response_structs::{GameResponse, WaitingForResponse};
 
+    // Helper function to create a mock reqwest error for testing
+    fn create_mock_error() -> reqwest::Error {
+        // Create a reqwest error by using an invalid URL
+        reqwest::Client::new()
+            .get("not a valid url")
+            .build()
+            .unwrap_err()
+    }
+
     #[tokio::test]
     async fn test_pool_games() {
         let mut mock_requester = MockRequester::new();
@@ -763,5 +772,478 @@ mod tests {
         assert_eq!(game.waited_players.len(), 1);
         assert!(game.waited_players.contains("player1"));
         assert!(!game.waited_players.contains("player2"));
+    }
+
+    #[tokio::test]
+    async fn test_pool_games_with_get_games_error() {
+        let mut mock_requester = MockRequester::new();
+
+        // Mock get_games to return an error
+        mock_requester
+            .expect_get_games()
+            .times(1)
+            .returning(|| Err(create_mock_error()));
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Call pool_games - should handle error gracefully
+        tmars_sync.pool_games().await;
+
+        // Verify that games map is empty due to error
+        assert_eq!(tmars_sync.games.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_pool_games_with_get_game_details_error() {
+        let mut mock_requester = MockRequester::new();
+
+        // Mock get_games response
+        mock_requester.expect_get_games().times(1).returning(|| {
+            Ok(vec![
+                GameResponse {
+                    game_id: "game1".to_owned(),
+                },
+                GameResponse {
+                    game_id: "game2".to_owned(),
+                },
+            ])
+        });
+
+        // Mock get_game_details for game1 to return error
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game1"))
+            .times(1)
+            .returning(|_| Err(create_mock_error()));
+
+        // Mock get_game_details for game2 to succeed
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game2"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game2".to_owned(),
+                    phase: "action".to_owned(),
+                    spectator_id: "spec2".to_owned(),
+                    players: vec![PlayerDetail {
+                        id: "player1".to_owned(),
+                        name: "Charlie".to_owned(),
+                        color: "green".to_owned(),
+                    }],
+                })
+            });
+
+        // Mock get_player_url for player1
+        mock_requester
+            .expect_get_player_url()
+            .with(mockall::predicate::eq("player1"))
+            .times(1)
+            .returning(|id| format!("http://example.com/{}", id));
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Call pool_games
+        tmars_sync.pool_games().await;
+
+        // Verify that only game2 was added (game1 failed)
+        assert_eq!(tmars_sync.games.len(), 1);
+        assert!(tmars_sync.games.contains_key("game2"));
+        assert!(!tmars_sync.games.contains_key("game1"));
+    }
+
+    #[tokio::test]
+    async fn test_pool_games_filters_ended_games() {
+        let mut mock_requester = MockRequester::new();
+
+        // Mock get_player_url for player1
+        mock_requester
+            .expect_get_player_url()
+            .with(mockall::predicate::eq("player1"))
+            .times(1)
+            .returning(|id| format!("http://example.com/{}", id));
+
+        // Mock get_games response
+        mock_requester.expect_get_games().times(1).returning(|| {
+            Ok(vec![
+                GameResponse {
+                    game_id: "game1".to_owned(),
+                },
+                GameResponse {
+                    game_id: "game2".to_owned(),
+                },
+            ])
+        });
+
+        // Mock get_game_details for game1 (ended game)
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game1"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game1".to_owned(),
+                    phase: "end".to_owned(),
+                    spectator_id: "spec1".to_owned(),
+                    players: vec![],
+                })
+            });
+
+        // Mock get_game_details for game2 (active game)
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game2"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game2".to_owned(),
+                    phase: "action".to_owned(),
+                    spectator_id: "spec2".to_owned(),
+                    players: vec![PlayerDetail {
+                        id: "player1".to_owned(),
+                        name: "Alice".to_owned(),
+                        color: "red".to_owned(),
+                    }],
+                })
+            });
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Call pool_games
+        tmars_sync.pool_games().await;
+
+        // Verify that only game2 was added (game1 is ended)
+        assert_eq!(tmars_sync.games.len(), 1);
+        assert!(tmars_sync.games.contains_key("game2"));
+        assert!(!tmars_sync.games.contains_key("game1"));
+    }
+
+    #[tokio::test]
+    async fn test_pool_waited_players_with_error() {
+        let mut mock_requester = MockRequester::new();
+
+        // Setup mock for get_waited_players to return error
+        mock_requester
+            .expect_get_waited_players()
+            .with(mockall::predicate::eq("spec1"))
+            .times(1)
+            .returning(|_| Err(create_mock_error()));
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Manually add a game to test waited players functionality
+        let game = Game {
+            id: "game1".to_owned(),
+            phase: Phase::Research,
+            spectator_id: "spec1".to_owned(),
+            players: vec![Player {
+                id: "player1".to_owned(),
+                name: "Alice".to_owned(),
+                color: "red".to_owned(),
+                url: "http://example.com/player1".to_owned(),
+            }],
+            waited_players: HashSet::new(),
+        };
+
+        tmars_sync.games.insert("game1".to_owned(), game);
+
+        // Call pool_waited_players - should handle error gracefully
+        tmars_sync.pool_waited_players().await;
+
+        // Verify waited players is empty due to error
+        let game = tmars_sync.games.get("game1").unwrap();
+        assert_eq!(game.waited_players.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_pool_waited_players_empty_response() {
+        let mut mock_requester = MockRequester::new();
+
+        // Setup mock for get_waited_players to return empty list
+        mock_requester
+            .expect_get_waited_players()
+            .with(mockall::predicate::eq("spec1"))
+            .times(1)
+            .returning(|_| {
+                Ok(WaitingForResponse {
+                    waiting_for: vec![],
+                })
+            });
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Manually add a game with some pre-existing waited players
+        let mut waited_players = HashSet::new();
+        waited_players.insert("player1".to_owned());
+
+        let game = Game {
+            id: "game1".to_owned(),
+            phase: Phase::Research,
+            spectator_id: "spec1".to_owned(),
+            players: vec![Player {
+                id: "player1".to_owned(),
+                name: "Alice".to_owned(),
+                color: "red".to_owned(),
+                url: "http://example.com/player1".to_owned(),
+            }],
+            waited_players,
+        };
+
+        tmars_sync.games.insert("game1".to_owned(), game);
+
+        // Call pool_waited_players
+        tmars_sync.pool_waited_players().await;
+
+        // Verify waited players was cleared
+        let game = tmars_sync.games.get("game1").unwrap();
+        assert_eq!(game.waited_players.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_pool_waited_players_color_not_matching() {
+        let mut mock_requester = MockRequester::new();
+
+        // Setup mock for get_waited_players with colors that don't match
+        mock_requester
+            .expect_get_waited_players()
+            .with(mockall::predicate::eq("spec1"))
+            .times(1)
+            .returning(|_| {
+                Ok(WaitingForResponse {
+                    waiting_for: vec!["purple".to_owned(), "yellow".to_owned()],
+                })
+            });
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Add a game with players that don't match the waited colors
+        let game = Game {
+            id: "game1".to_owned(),
+            phase: Phase::Research,
+            spectator_id: "spec1".to_owned(),
+            players: vec![
+                Player {
+                    id: "player1".to_owned(),
+                    name: "Alice".to_owned(),
+                    color: "red".to_owned(),
+                    url: "http://example.com/player1".to_owned(),
+                },
+                Player {
+                    id: "player2".to_owned(),
+                    name: "Bob".to_owned(),
+                    color: "blue".to_owned(),
+                    url: "http://example.com/player2".to_owned(),
+                },
+            ],
+            waited_players: HashSet::new(),
+        };
+
+        tmars_sync.games.insert("game1".to_owned(), game);
+
+        // Call pool_waited_players
+        tmars_sync.pool_waited_players().await;
+
+        // Verify no waited players were added (colors don't match)
+        let game = tmars_sync.games.get("game1").unwrap();
+        assert_eq!(game.waited_players.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_request_waited_players_error() {
+        let mut mock_requester = MockRequester::new();
+
+        // Setup mock for get_waited_players to return error
+        mock_requester
+            .expect_get_waited_players()
+            .with(mockall::predicate::eq("spec1"))
+            .times(1)
+            .returning(|_| Err(create_mock_error()));
+
+        let tmars_sync = TMarsSync::new(mock_requester);
+
+        // Call request_waited_players
+        let waited_players = tmars_sync.request_waited_players("spec1").await;
+
+        // Verify empty result on error
+        assert_eq!(waited_players.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_sync_with_partial_failures() {
+        let mut mock_requester = MockRequester::new();
+
+        // Mock get_player_url
+        mock_requester
+            .expect_get_player_url()
+            .with(mockall::predicate::eq("player1"))
+            .times(1)
+            .returning(|id| format!("http://example.com/{}", id));
+
+        // Mock get_games response
+        mock_requester.expect_get_games().times(1).returning(|| {
+            Ok(vec![GameResponse {
+                game_id: "game1".to_owned(),
+            }])
+        });
+
+        // Mock get_game_details succeeds
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game1"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game1".to_owned(),
+                    phase: "action".to_owned(),
+                    spectator_id: "spec1".to_owned(),
+                    players: vec![PlayerDetail {
+                        id: "player1".to_owned(),
+                        name: "Alice".to_owned(),
+                        color: "red".to_owned(),
+                    }],
+                })
+            });
+
+        // Mock get_waited_players fails
+        mock_requester
+            .expect_get_waited_players()
+            .with(mockall::predicate::eq("spec1"))
+            .times(1)
+            .returning(|_| Err(create_mock_error()));
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Call sync
+        tmars_sync.sync().await;
+
+        // Verify game was added but waited players is empty
+        let games = tmars_sync.get_games();
+        assert_eq!(games.len(), 1);
+
+        let game = games.get("game1").unwrap();
+        assert_eq!(game.id, "game1");
+        assert_eq!(game.waited_players.len(), 0);
+    }
+
+    #[test]
+    fn test_convert_phase_all_variants() {
+        let mock_requester = MockRequester::new();
+        let tmars_sync = TMarsSync::new(mock_requester);
+
+        assert!(matches!(
+            tmars_sync.convert_phase("initialDrafting"),
+            Phase::InitialDrafting
+        ));
+        assert!(matches!(
+            tmars_sync.convert_phase("preludes"),
+            Phase::Preludes
+        ));
+        assert!(matches!(tmars_sync.convert_phase("ceos"), Phase::Ceos));
+        assert!(matches!(
+            tmars_sync.convert_phase("research"),
+            Phase::Research
+        ));
+        assert!(matches!(
+            tmars_sync.convert_phase("drafting"),
+            Phase::Drafting
+        ));
+        assert!(matches!(tmars_sync.convert_phase("action"), Phase::Action));
+        assert!(matches!(
+            tmars_sync.convert_phase("production"),
+            Phase::Production
+        ));
+        assert!(matches!(tmars_sync.convert_phase("solar"), Phase::Solar));
+        assert!(matches!(
+            tmars_sync.convert_phase("intergeneration"),
+            Phase::Intergeneration
+        ));
+        assert!(matches!(tmars_sync.convert_phase("end"), Phase::End));
+
+        // Test unknown phases default to Research
+        assert!(matches!(
+            tmars_sync.convert_phase("unknown_phase"),
+            Phase::Research
+        ));
+        assert!(matches!(tmars_sync.convert_phase(""), Phase::Research));
+        assert!(matches!(
+            tmars_sync.convert_phase("INVALID"),
+            Phase::Research
+        ));
+    }
+
+    #[test]
+    fn test_convert_players_empty_list() {
+        let mock_requester = MockRequester::new();
+        let tmars_sync = TMarsSync::new(mock_requester);
+
+        let player_details = vec![];
+        let players = tmars_sync.convert_players(player_details);
+
+        assert_eq!(players.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_pool_games_clears_existing_games() {
+        let mut mock_requester = MockRequester::new();
+
+        // First sync - add a game
+        mock_requester
+            .expect_get_player_url()
+            .with(mockall::predicate::eq("player1"))
+            .times(1)
+            .returning(|id| format!("http://example.com/{}", id));
+
+        mock_requester.expect_get_games().times(1).returning(|| {
+            Ok(vec![GameResponse {
+                game_id: "game1".to_owned(),
+            }])
+        });
+
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game1"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game1".to_owned(),
+                    phase: "action".to_owned(),
+                    spectator_id: "spec1".to_owned(),
+                    players: vec![PlayerDetail {
+                        id: "player1".to_owned(),
+                        name: "Alice".to_owned(),
+                        color: "red".to_owned(),
+                    }],
+                })
+            });
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Add game1
+        tmars_sync.pool_games().await;
+        assert_eq!(tmars_sync.games.len(), 1);
+        assert!(tmars_sync.games.contains_key("game1"));
+
+        // Manually add game2 that shouldn't be in the server anymore
+        let game2 = Game {
+            id: "game2".to_owned(),
+            phase: Phase::Research,
+            spectator_id: "spec2".to_owned(),
+            players: vec![],
+            waited_players: HashSet::new(),
+        };
+        tmars_sync.games.insert("game2".to_owned(), game2);
+
+        // Now set up second sync that only returns nothing
+        let mut mock_requester2 = MockRequester::new();
+        mock_requester2
+            .expect_get_games()
+            .times(1)
+            .returning(|| Ok(vec![]));
+
+        tmars_sync.tmars_requester = mock_requester2;
+        tmars_sync.pool_games().await;
+
+        // Verify games were cleared (both game1 and game2 should be gone)
+        assert_eq!(tmars_sync.games.len(), 0);
     }
 }
