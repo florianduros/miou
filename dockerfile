@@ -1,12 +1,17 @@
 # Stage 1: Builder
 # Use a specific Rust version with Debian slim for a stable build environment
-FROM rust:1.91-slim-bullseye AS builder
+FROM rust:1.91-alpine AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Install musl-tools for static compilation
-RUN apt-get update && apt-get install -y musl-tools pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN set -x && \
+    apk add --no-cache musl-dev openssl-dev openssl-libs-static
+
+# statically link against openssl
+ENV OPENSSL_STATIC=1
+
 # Copy only Cargo.toml and Cargo.lock first to leverage Docker cache
 
 # Add the musl target for static linking
