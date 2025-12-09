@@ -686,4 +686,82 @@ mod tests {
         let games_map = tmars_sync.get_games();
         assert_eq!(games_map.get("game1").unwrap(), &game);
     }
+
+    #[tokio::test]
+    async fn test_sync_basic() {
+        let mut mock_requester = MockRequester::new();
+
+        // Mock get_player_url calls
+        mock_requester
+            .expect_get_player_url()
+            .with(mockall::predicate::eq("player1"))
+            .times(1)
+            .returning(|id| format!("http://example.com/{}", id));
+
+        mock_requester
+            .expect_get_player_url()
+            .with(mockall::predicate::eq("player2"))
+            .times(1)
+            .returning(|id| format!("http://example.com/{}", id));
+
+        // Mock get_games response
+        mock_requester.expect_get_games().times(1).returning(|| {
+            Ok(vec![GameResponse {
+                game_id: "game1".to_owned(),
+            }])
+        });
+
+        // Mock get_game_details
+        mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game1"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game1".to_owned(),
+                    phase: "action".to_owned(),
+                    spectator_id: "spec1".to_owned(),
+                    players: vec![
+                        PlayerDetail {
+                            id: "player1".to_owned(),
+                            name: "Alice".to_owned(),
+                            color: "red".to_owned(),
+                        },
+                        PlayerDetail {
+                            id: "player2".to_owned(),
+                            name: "Bob".to_owned(),
+                            color: "blue".to_owned(),
+                        },
+                    ],
+                })
+            });
+
+        // Mock get_waited_players
+        mock_requester
+            .expect_get_waited_players()
+            .with(mockall::predicate::eq("spec1"))
+            .times(1)
+            .returning(|_| {
+                Ok(WaitingForResponse {
+                    waiting_for: vec!["red".to_owned()],
+                })
+            });
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+
+        // Call sync
+        tmars_sync.sync().await;
+
+        // Verify games were synced
+        let games = tmars_sync.get_games();
+        assert_eq!(games.len(), 1);
+
+        let game = games.get("game1").unwrap();
+        assert_eq!(game.id, "game1");
+        assert_eq!(game.spectator_id, "spec1");
+        assert_eq!(game.players.len(), 2);
+        assert_eq!(game.waited_players.len(), 1);
+        assert!(game.waited_players.contains("player1"));
+        assert!(!game.waited_players.contains("player2"));
+    }
 }
