@@ -40,6 +40,7 @@ pub trait Requester {
     async fn get_game_details(&self, game_id: &str) -> Result<GameDetail, Error>;
     /// Fetches the list of players being waited for in a game.
     async fn get_waited_players(&self, player_id: &str) -> Result<WaitingForResponse, Error>;
+    /// Constructs the URL for a specific player.
     fn get_player_url(&self, player_id: &str) -> String;
 }
 
