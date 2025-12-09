@@ -38,7 +38,7 @@ FROM scratch
 # Copy only the compiled binary from the builder stage
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/miou .
 
-COPY ./miou.docker.yaml /config/miou.yaml
+COPY ./miou.docker.yml /config/miou.yml
 
 # Define the command to run your application
-CMD ["./miou", "--config", "/config/miou.yaml", "--data", "/data"]
+CMD ["./miou", "--config", "/config/miou.yml", "--data", "/data"]
