@@ -6,6 +6,7 @@
   <br />  
   <img src="assets/miou.png" style="width:250px;"/>
   <hr />
+  <a href="https://hub.docker.com/r/florianduros/miou"><img src="https://img.shields.io/docker/v/florianduros/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Docker&logoColor=white"></a>
   <a href="https://github.com/florianduros/miou/releases"><img src="https://img.shields.io/github/v/release/florianduros/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=GitHub&logoColor=white"></a>
   <a href="https://crates.io/crates/miou"><img src="https://img.shields.io/crates/v/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Rust&logoColor=white"></a>
   <a href="https://docs.rs/miou"><img src="https://img.shields.io/docsrs/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Rust&logoColor=white"></a>
