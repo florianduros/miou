@@ -135,7 +135,7 @@ services:
     restart: unless-stopped
     volumes:
       # Mount configuration file or/and use environment variables to configure
-      # - ./miou.yaml:/config/miou.yaml
+      # - ./miou.yml:/config/miou.yml
       - ./data:/data
     environment:
       # Set log level, info by default
