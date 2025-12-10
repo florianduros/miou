@@ -19,5 +19,5 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          push: false
-          tags: florianduros/miou:latest
+          push: true
+          tags: florianduros/miou:test-01
