@@ -6,6 +6,7 @@
   <br />  
   <img src="assets/miou.png" style="width:250px;"/>
   <hr />
+  <a href="https://hub.docker.com/r/florianduros/miou"><img src="https://img.shields.io/docker/v/florianduros/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Docker&logoColor=white"></a>
   <a href="https://github.com/florianduros/miou/releases"><img src="https://img.shields.io/github/v/release/florianduros/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=GitHub&logoColor=white"></a>
   <a href="https://crates.io/crates/miou"><img src="https://img.shields.io/crates/v/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Rust&logoColor=white"></a>
   <a href="https://docs.rs/miou"><img src="https://img.shields.io/docsrs/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Rust&logoColor=white"></a>
@@ -155,7 +156,7 @@ You can download the latest release from the [Releases](https://github.com/flori
 
 Run
 ```bash
-miou --config config.yaml --data-path ./data
+miou --config config.yaml --data ./data
 ```
 
 ### From Source
@@ -179,14 +180,14 @@ cargo build --release
 
 4. Run the bot:
 ```bash
-cargo run --release -- --config config.yaml --data-path ./data
+cargo run --release -- --config config.yaml --data ./data
 ```
 
 ### From Cargo
 
 ```bash
 cargo install miou
-miou --config config.yaml --data-path ./data
+miou --config config.yaml --data ./data
 ```
 
 ## Configuration
@@ -219,7 +220,7 @@ export MIOU_TMARS__POLLING_INTERVAL="120"
 export MIOU_MATRIX__USER_ID="@miou:matrix.org"
 export MIOU_MATRIX__PASSWORD="your-bot-password"
 export MIOU_MATRIX__PASSPHRASE="your-recovery-passphrase"
-miou --config config.yaml --data-path ./data
+miou --config config.yaml --data ./data
 ```
 
 Environment variables take precedence over values in the YAML file.
@@ -245,7 +246,7 @@ Environment variables take precedence over values in the YAML file.
 ### Command-Line Arguments
 
 - `--config`: Path to the configuration file (required)
-- `--data-path`: Directory for storing matrix session data and alerts (required)
+- `--data`: Directory for storing matrix session data and alerts (required)
 
 The data directory will contain:
 - `session/`: Matrix session data and encryption keys

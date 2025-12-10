@@ -12,7 +12,7 @@ services:
       - RUST_LOG=debug
       # Override configuration via environment variables
       # Use MIOU_ prefix with double underscores for nested paths
-      - MIOU_TMARS__URL=hhttps://tmars.example.com
+      - MIOU_TMARS__URL=https://tmars.example.com
       - MIOU_TMARS__SERVER_ID=your-server-id
       - MIOU_TMARS__POLLING_INTERVAL=120
       - MIOU_MATRIX__USER_ID=@miou:matrix.org
