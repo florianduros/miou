@@ -155,7 +155,7 @@ You can download the latest release from the [Releases](https://github.com/flori
 
 Run
 ```bash
-miou --config config.yaml --data-path ./data
+miou --config config.yaml --data ./data
 ```
 
 ### From Source
@@ -179,14 +179,14 @@ cargo build --release
 
 4. Run the bot:
 ```bash
-cargo run --release -- --config config.yaml --data-path ./data
+cargo run --release -- --config config.yaml --data ./data
 ```
 
 ### From Cargo
 
 ```bash
 cargo install miou
-miou --config config.yaml --data-path ./data
+miou --config config.yaml --data ./data
 ```
 
 ## Configuration
@@ -219,7 +219,7 @@ export MIOU_TMARS__POLLING_INTERVAL="120"
 export MIOU_MATRIX__USER_ID="@miou:matrix.org"
 export MIOU_MATRIX__PASSWORD="your-bot-password"
 export MIOU_MATRIX__PASSPHRASE="your-recovery-passphrase"
-miou --config config.yaml --data-path ./data
+miou --config config.yaml --data ./data
 ```
 
 Environment variables take precedence over values in the YAML file.
@@ -245,7 +245,7 @@ Environment variables take precedence over values in the YAML file.
 ### Command-Line Arguments
 
 - `--config`: Path to the configuration file (required)
-- `--data-path`: Directory for storing matrix session data and alerts (required)
+- `--data`: Directory for storing matrix session data and alerts (required)
 
 The data directory will contain:
 - `session/`: Matrix session data and encryption keys

@@ -49,7 +49,7 @@
 //! export MIOU_MATRIX__USER_ID="@miou:matrix.org"
 //! export MIOU_MATRIX__PASSWORD="your-password"
 //! export MIOU_MATRIX__PASSPHRASE="your-passphrase"
-//! miou --config config.yaml --data-path ./data
+//! miou --config config.yaml --data ./data
 //! ```
 
 use figment::{
