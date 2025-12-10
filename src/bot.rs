@@ -277,14 +277,14 @@ impl Bot {
                     password: config.matrix.password,
                     passphrase: config.matrix.passphrase,
                 },
-                &get_path(&args.data_path, "session"),
+                &get_path(&args.data, "session"),
                 avatar_bytes,
             )
             .await?,
         );
 
         let alert_controller = Arc::new(Mutex::new(
-            AlertController::new(get_path(&args.data_path, "alerts")).await,
+            AlertController::new(get_path(&args.data, "alerts")).await,
         ));
 
         let commander = Arc::new(Commander::new());
