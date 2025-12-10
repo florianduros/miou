@@ -25,6 +25,9 @@ COPY Cargo.toml Cargo.lock ./
 # If Cargo.toml and Cargo.lock haven't changed, this step will be skipped.
 RUN cargo fetch --locked --target x86_64-unknown-linux-musl
 
+# Copy assets
+COPY assets ./assets
+
 # Copy all source code
 COPY src ./src
 
