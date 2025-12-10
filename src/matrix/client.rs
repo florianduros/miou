@@ -86,7 +86,7 @@ impl MatrixClient {
 
         let client_result = setup_client(user_credentials, &matrix_session).await;
         if client_result.is_err() {
-            error!("failed to setup matrix client");
+            error!("failed to setup matrix client: {:?}", client_result);
             return Err(anyhow::anyhow!("failed to setup matrix client"));
         }
         let client = client_result.unwrap();
