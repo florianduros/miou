@@ -19,7 +19,7 @@
 # export MIOU_MATRIX__PASSPHRASE="your-recovery-passphrase"
 #
 # Then run:
-#   miou --config miou.env.yaml --data-path ./data
+#   miou --config miou.env.yaml --data ./data
 
 # TMars Server Configuration
 # All values below will be overridden by environment variables

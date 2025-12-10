@@ -50,7 +50,7 @@
 //! # Usage
 //!
 //! ```bash
-//! miou --config config.yaml --data-path ./session
+//! miou --config config.yaml --data ./session
 //! ```
 //!
 //! # Bot Commands
@@ -117,7 +117,7 @@ mod utils;
 /// # Examples
 ///
 /// ```bash
-/// miou --config config.yaml --data-path ./miou-data
+/// miou --config config.yaml --data ./miou-data
 /// ```
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -148,7 +148,7 @@ struct Args {
     /// ```bash
     /// export MIOU_MATRIX__PASSWORD="secret-from-env"
     /// export MIOU_MATRIX__PASSPHRASE="phrase-from-env"
-    /// miou --config config.yaml --data-path ./miou-data
+    /// miou --config config.yaml --data ./miou-data
     /// ```
     #[arg(short, long)]
     config: String,
@@ -174,10 +174,10 @@ struct Args {
     /// chmod 700 ./miou-data
     ///
     /// # Run the bot
-    /// miou --config config.yaml --data-path ./miou-data
+    /// miou --config config.yaml --data ./miou-data
     /// ```
     #[arg(short, long)]
-    data_path: String,
+    data: String,
 }
 
 /// Main entry point for the Miou bot.
@@ -224,19 +224,19 @@ struct Args {
 /// Run with default log level (info):
 ///
 /// ```bash
-/// miou --config config.yaml --data-path ./miou-data
+/// miou --config config.yaml --data ./miou-data
 /// ```
 ///
 /// Run with debug logging to troubleshoot issues:
 ///
 /// ```bash
-/// RUST_LOG=debug miou --config config.yaml --data-path ./miou-data
+/// RUST_LOG=debug miou --config config.yaml --data ./miou-data
 /// ```
 ///
 /// Run with minimal logging:
 ///
 /// ```bash
-/// RUST_LOG=warn miou --config config.yaml --data-path ./miou-data
+/// RUST_LOG=warn miou --config config.yaml --data ./miou-data
 /// ```
 ///
 /// Run with environment variable overrides for sensitive data:
@@ -247,7 +247,7 @@ struct Args {
 /// export MIOU_MATRIX__USER_ID="@miou:matrix.org"
 /// export MIOU_MATRIX__PASSWORD="your-password"
 /// export MIOU_MATRIX__PASSPHRASE="your-passphrase"
-/// miou --config config.yaml --data-path ./miou-data
+/// miou --config config.yaml --data ./miou-data
 /// ```
 #[tokio::main]
 async fn main() {

@@ -1,12 +1,21 @@
-name: docker
+name: Docker
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "*"
+      - "**"
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Get tag
+        id: tag
+        uses: devops-actions/action-get-tag@v1.0.3
+        with:
+          strip_v: true # Optional: Remove 'v' character from version Optional: Default version when tag not found
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -19,5 +28,5 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          push: false
-          tags: florianduros/miou:latest
+          push: true
+          tags: florianduros/miou:latest,florianduros/miou:${{ steps.tag.outputs.tag }}
