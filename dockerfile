@@ -5,14 +5,12 @@ FROM rust:1.91-alpine AS builder
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install musl-tools for static compilation
+# Install musl-tools, openssl and certificates
 RUN set -x && \
-    apk add --no-cache musl-dev openssl-dev openssl-libs-static
+    apk update && apk add --no-cache musl-dev openssl-dev openssl-libs-static ca-certificates
 
 # statically link against openssl
 ENV OPENSSL_STATIC=1
-
-# Copy only Cargo.toml and Cargo.lock first to leverage Docker cache
 
 # Add the musl target for static linking
 RUN rustup target add x86_64-unknown-linux-musl
@@ -36,7 +34,7 @@ COPY src ./src
 # --locked to ensure reproducible builds based on Cargo.lock
 # --target for static linking with musl libc
 RUN CARGO_INCREMENTAL=0 \
-    RUSTFLAGS="-C strip=debuginfo -C target-feature=+aes,+sse2,+ssse3" \
+    RUSTFLAGS="-C strip=debuginfo" \
     cargo build --release --locked --target x86_64-unknown-linux-musl
 
 # Stage 2: Runner
@@ -46,6 +44,10 @@ FROM scratch
 # Copy only the compiled binary from the builder stage
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/miou .
 
+# Copy CA certificates for SSL/TLS support
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+# Copy the default configuration file into the container
 COPY ./miou.docker.yml /config/miou.yml
 
 # Define the command to run your application
