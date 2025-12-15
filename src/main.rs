@@ -259,13 +259,18 @@ async fn main() {
     let args = Args::parse();
 
     // Load configuration from YAML file with environment variable expansion
-    let config: Config = match Config::load(&args.config) {
+    let mut config: Config = match Config::load(&args.config) {
         Ok(cfg) => cfg,
         Err(e) => {
             error!("Failed to load config file: {}", e);
             return;
         }
     };
+
+    // Normalize TMars URL by removing trailing slash if present
+    if config.tmars.url.ends_with('/') {
+        config.tmars.url.pop();
+    }
 
     let avatar_bytes = include_bytes!("../assets/miou.png");
 
