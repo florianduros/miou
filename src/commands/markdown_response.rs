@@ -250,6 +250,7 @@ pub fn format_successful_unregister() -> String {
 ///
 /// # Arguments
 ///
+/// * `user_id` - The Matrix user ID of the player
 /// * `player_url` - The URL to the player's game page on the Terraforming Mars server
 ///
 /// # Returns
@@ -263,8 +264,11 @@ pub fn format_successful_unregister() -> String {
 /// let msg = format_player_turn("https://example.com/player?id=p123".to_string());
 /// assert!(msg.contains("turn to play"));
 /// ```
-pub fn format_player_turn(player_url: String) -> String {
-    format!("It's your turn to play: [{}]({}).", player_url, player_url)
+pub fn format_player_turn(user_id: String, player_url: String) -> String {
+    format!(
+        "{}: it's your turn to play: [{}]({}).",
+        user_id, player_url, player_url
+    )
 }
 
 /// Formats a list of registered alerts for the user.
@@ -449,8 +453,11 @@ mod tests {
     #[test]
     fn test_format_player_turn() {
         assert_eq!(
-            format_player_turn("http://example.com/player-id1".to_owned()),
-            "It's your turn to play: [http://example.com/player-id1](http://example.com/player-id1)."
+            format_player_turn(
+                "@alice:example.com".to_owned(),
+                "http://example.com/player-id1".to_owned()
+            ),
+            "@alice:example.com: it's your turn to play: [http://example.com/player-id1](http://example.com/player-id1)."
         )
     }
 }

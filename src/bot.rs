@@ -448,7 +448,10 @@ impl Bot {
                             let _ = matrix_client
                                 .send_mention(
                                     &alert.room_id,
-                                    &Commander::get_player_turn_message(alert.player_url.clone()),
+                                    &Commander::get_player_turn_message(
+                                        alert.user_id.clone(),
+                                        alert.player_url.clone(),
+                                    ),
                                     &alert.user_id,
                                 )
                                 .await;
