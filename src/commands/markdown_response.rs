@@ -179,7 +179,7 @@ pub fn format_invalid_delay() -> String {
 /// let msg = format_game_not_found("game123".to_string());
 /// assert!(msg.contains("game123"));
 /// ```
-pub fn format_game_not_found(game_id: String) -> String {
+pub fn format_game_not_found(game_id: &str) -> String {
     format!("Game with id '{}' not found.", game_id)
 }
 
@@ -202,7 +202,7 @@ pub fn format_game_not_found(game_id: String) -> String {
 /// assert!(msg.contains("Alice"));
 /// assert!(msg.contains("game123"));
 /// ```
-pub fn format_player_not_found(player_name: String, game_id: String) -> String {
+pub fn format_player_not_found(player_name: &str, game_id: &str) -> String {
     format!(
         "Player '{}' not found in game with id '{}'.",
         player_name, game_id
@@ -264,7 +264,7 @@ pub fn format_successful_unregister() -> String {
 /// let msg = format_player_turn("https://example.com/player?id=p123".to_string());
 /// assert!(msg.contains("turn to play"));
 /// ```
-pub fn format_player_turn(user_id: String, player_url: String) -> String {
+pub fn format_player_turn(user_id: &str, player_url: &str) -> String {
     format!(
         "{}: it's your turn to play: [{}]({}).",
         user_id, player_url, player_url
@@ -408,7 +408,7 @@ mod tests {
     #[test]
     fn test_format_game_not_found() {
         assert_eq!(
-            format_game_not_found("game123".to_owned()),
+            format_game_not_found("game123"),
             "Game with id 'game123' not found.",
         );
     }
@@ -416,7 +416,7 @@ mod tests {
     #[test]
     fn test_format_player_not_found() {
         assert_eq!(
-            format_player_not_found("Alice".to_owned(), "game123".to_owned()),
+            format_player_not_found("Alice", "game123"),
             "Player 'Alice' not found in game with id 'game123'.",
         );
     }
@@ -453,10 +453,7 @@ mod tests {
     #[test]
     fn test_format_player_turn() {
         assert_eq!(
-            format_player_turn(
-                "@alice:example.com".to_owned(),
-                "http://example.com/player-id1".to_owned()
-            ),
+            format_player_turn("@alice:example.com", "http://example.com/player-id1"),
             "@alice:example.com: it's your turn to play: [http://example.com/player-id1](http://example.com/player-id1)."
         )
     }

@@ -449,8 +449,8 @@ impl Bot {
                                 .send_mention(
                                     &alert.room_id,
                                     &Commander::get_player_turn_message(
-                                        alert.user_id.clone(),
-                                        alert.player_url.clone(),
+                                        alert.user_id.as_str(),
+                                        alert.player_url.as_str(),
                                     ),
                                     &alert.user_id,
                                 )
