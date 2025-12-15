@@ -229,6 +229,7 @@ impl Commander {
     ///
     /// # Arguments
     ///
+    /// * `user_id` - The Matrix user ID of the player
     /// * `player_url` - The URL to the player's game page
     ///
     /// # Returns
@@ -242,8 +243,8 @@ impl Commander {
     /// let message = Commander::get_player_turn_message("https://example.com/player?id=p123".to_string());
     /// assert!(message.contains("example.com"));
     /// ```
-    pub fn get_player_turn_message(player_url: String) -> String {
-        format_player_turn(player_url)
+    pub fn get_player_turn_message(user_id: String, player_url: String) -> String {
+        format_player_turn(user_id, player_url)
     }
 }
 
@@ -552,8 +553,11 @@ mod tests {
     #[test]
     fn test_get_player_turn_message() {
         assert_eq!(
-            Commander::get_player_turn_message("http://example.com/player1".to_string()),
-            "It's your turn to play: [http://example.com/player1](http://example.com/player1)."
+            Commander::get_player_turn_message(
+                "@alice:example.com".to_owned(),
+                "http://example.com/player1".to_owned()
+            ),
+            "@alice:example.com: it's your turn to play: [http://example.com/player1](http://example.com/player1)."
         )
     }
 }
