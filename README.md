@@ -9,7 +9,6 @@
   <a href="https://hub.docker.com/r/florianduros/miou"><img src="https://img.shields.io/docker/v/florianduros/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Docker&logoColor=white"></a>
   <a href="https://github.com/florianduros/miou/releases"><img src="https://img.shields.io/github/v/release/florianduros/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=GitHub&logoColor=white"></a>
   <a href="https://crates.io/crates/miou"><img src="https://img.shields.io/crates/v/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Rust&logoColor=white"></a>
-  <a href="https://docs.rs/miou"><img src="https://img.shields.io/docsrs/miou?style=flat&labelColor=516B3A&color=E6E1A1&logo=Rust&logoColor=white"></a>
   <br />
   <a href="https://app.codecov.io/gh/florianduros/miou"><img src="https://img.shields.io/codecov/c/gh/florianduros/miou?label=coverage&style=flat&labelColor=516B3A&color=E6E1A1&logo=codecov&logoColor=white"></a>
   <a href="https://github.com/florianduros/miou/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/florianduros/miou/tests.yml?label=tests&style=flat&labelColor=516B3A&color=E6E1A1&logo=GitHub&logoColor=white"></a>
