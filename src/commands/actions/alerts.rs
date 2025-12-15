@@ -51,8 +51,7 @@ pub fn handle_alerts(context: &CommandContext) -> CommandResult {
         for alert in alert_set.iter() {
             if alert.user_id == user_id.clone()
                 && alert.room_id == room_id.clone()
-                && let Some(name) =
-                    search_player_name(games_map, game_id.clone(), alert.player_id.clone())
+                && let Some(name) = search_player_name(games_map, game_id, alert.player_id.as_str())
             {
                 player_names.push(name);
             }
@@ -80,12 +79,12 @@ pub fn handle_alerts(context: &CommandContext) -> CommandResult {
 /// Returns `None` if the game doesn't exist or the player is not found in that game.
 fn search_player_name(
     games_map: &HashMap<String, Game>,
-    game_id: String,
-    player_id: String,
+    game_id: &str,
+    player_id: &str,
 ) -> Option<String> {
     games_map
         // For the given game, we look for the player name for the player_id
-        .get(&game_id)
+        .get(&game_id.to_owned())
         .and_then(|game| {
             game.players
                 .iter()
@@ -197,7 +196,7 @@ mod tests {
         let mut games_map = HashMap::new();
         games_map.insert("game1".to_string(), game);
 
-        let result = search_player_name(&games_map, "game1".to_string(), "player1".to_string());
+        let result = search_player_name(&games_map, "game1", "player1");
 
         assert_eq!(result, Some("Alice".to_string()));
     }
@@ -208,7 +207,7 @@ mod tests {
         let mut games_map = HashMap::new();
         games_map.insert("game1".to_string(), game);
 
-        let result = search_player_name(&games_map, "game999".to_string(), "player1".to_string());
+        let result = search_player_name(&games_map, "game999", "player1");
 
         assert_eq!(result, None);
     }
@@ -219,7 +218,7 @@ mod tests {
         let mut games_map = HashMap::new();
         games_map.insert("game1".to_string(), game);
 
-        let result = search_player_name(&games_map, "game1".to_string(), "player999".to_string());
+        let result = search_player_name(&games_map, "game1", "player999");
 
         assert_eq!(result, None);
     }

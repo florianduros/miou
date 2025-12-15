@@ -68,7 +68,7 @@ enum RegisterError {
 ///     "Alice".to_string()
 /// );
 /// ```
-fn format_register_error(error: RegisterError, game_id: String, player_name: String) -> String {
+fn format_register_error(error: RegisterError, game_id: &str, player_name: &str) -> String {
     match error {
         RegisterError::InvalidDelay => format_invalid_delay(),
         RegisterError::GameNotFound => format_game_not_found(game_id),
@@ -153,7 +153,7 @@ pub async fn handle_register(context: &CommandContext, command: &Command) -> Opt
         match validate_and_get_player((game_id.clone(), player_name.clone(), *delay), games_map) {
             Err(e) => {
                 return Some(CommandResult {
-                    response: format_register_error(e, game_id, player_name),
+                    response: format_register_error(e, game_id.as_str(), player_name.as_str()),
                     alerts_to_remove: None,
                     alert_to_add: None,
                 });
@@ -193,11 +193,7 @@ mod tests {
     #[test]
     fn test_format_register_error_invalid_delay() {
         assert_eq!(
-            format_register_error(
-                RegisterError::InvalidDelay,
-                "game_id".to_string(),
-                "player_name".to_string()
-            ),
+            format_register_error(RegisterError::InvalidDelay, "game_id", "player_name"),
             format_invalid_delay()
         );
     }
@@ -205,24 +201,16 @@ mod tests {
     #[test]
     fn test_format_register_error_game_not_found() {
         assert_eq!(
-            format_register_error(
-                RegisterError::GameNotFound,
-                "game_id".to_string(),
-                "player_name".to_string()
-            ),
-            format_game_not_found("game_id".to_string())
+            format_register_error(RegisterError::GameNotFound, "game_id", "player_name"),
+            format_game_not_found("game_id")
         );
     }
 
     #[test]
     fn test_format_register_error_player_not_found() {
         assert_eq!(
-            format_register_error(
-                RegisterError::PlayerNotFound,
-                "game_id".to_string(),
-                "player_name".to_string()
-            ),
-            format_player_not_found("player_name".to_string(), "game_id".to_string())
+            format_register_error(RegisterError::PlayerNotFound, "game_id", "player_name"),
+            format_player_not_found("player_name", "game_id")
         );
     }
 
@@ -393,10 +381,7 @@ mod tests {
 
         assert!(result.is_some());
         let result = result.unwrap();
-        assert_eq!(
-            result.response,
-            format_game_not_found("game999".to_string())
-        );
+        assert_eq!(result.response, format_game_not_found("game999"));
         assert!(result.alert_to_add.is_none());
         assert!(result.alerts_to_remove.is_none());
     }
@@ -411,10 +396,7 @@ mod tests {
 
         assert!(result.is_some());
         let result = result.unwrap();
-        assert_eq!(
-            result.response,
-            format_player_not_found("Bob".to_string(), "game1".to_string())
-        );
+        assert_eq!(result.response, format_player_not_found("Bob", "game1"));
         assert!(result.alert_to_add.is_none());
         assert!(result.alerts_to_remove.is_none());
     }
