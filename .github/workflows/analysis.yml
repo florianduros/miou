@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Add rustfmt and clippy
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           components: rustfmt, clippy
