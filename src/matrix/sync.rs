@@ -198,7 +198,15 @@ impl MatrixSync {
 
         self.client
             .sync_with_result_callback(sync_settings, |sync_result| async move {
-                let response = sync_result?;
+                if let Err(err) = sync_result {
+                    error!("an error occurred during sync: {:?}", err);
+                    // Wait 2mins before retrying to avoid busy looping on errors
+                    sleep(Duration::from_mins(2)).await;
+                    return Ok(LoopCtrl::Continue);
+                }
+
+                // Unwrap is safe here because we checked for Err above
+                let response = sync_result.unwrap();
 
                 // We persist the token each time to be able to restore our session
                 if let Err(err) = self.session.persist_sync_token(response.next_batch).await {
