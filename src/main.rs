@@ -275,6 +275,12 @@ async fn main() {
     let avatar_bytes = include_bytes!("../assets/miou.png");
 
     // Launch bot
-    let bot = Bot::new(config, args, avatar_bytes).await.unwrap();
+    let bot = match Bot::new(config, args, avatar_bytes).await {
+        Ok(b) => b,
+        Err(e) => {
+            error!("Failed to initialize bot: {}", e);
+            return;
+        }
+    };
     bot.start().await;
 }
