@@ -32,3 +32,20 @@ pub use crate::tmars::structs::Game;
 #[cfg(test)]
 pub use crate::tmars::structs::{Phase, Player};
 pub use crate::tmars::sync::TMarsSync;
+
+/// Errors that can occur during synchronization with the TMars API.
+///
+/// This enum represents the different error conditions that can arise when
+/// synchronizing game data with the Terraforming Mars server.
+///
+/// # Variants
+///
+/// * `AccessError` - Authentication or authorization failure (HTTP 401/403)
+#[derive(Debug)]
+pub enum SyncError {
+    /// Authentication or authorization failure.
+    ///
+    /// Returned when the TMars API responds with HTTP 401 (Unauthorized) or
+    /// HTTP 403 (Forbidden) status codes.
+    AccessError,
+}

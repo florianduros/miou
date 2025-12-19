@@ -436,7 +436,16 @@ impl Bot {
 
             loop {
                 interval.tick().await;
-                tmars_sync.lock().await.sync().await;
+
+                // Perform sync
+                // If an error occurs, log it, notify all rooms, and stop the sync task
+                if tmars_sync.lock().await.sync().await.is_err() {
+                    log::error!("stop tmars sync task due to error");
+                    matrix_client
+                        .send_to_all(&Commander::get_access_error_message())
+                        .await;
+                    break;
+                }
 
                 let games_map = tmars_sync.lock().await.get_games();
 

@@ -46,7 +46,7 @@ use crate::commands::{
     CommandContext, CommandParseError, CommandResult,
     actions::{handle_alerts, handle_games, handle_help, handle_register, handle_unregister},
     command::{Command, format_command_error},
-    markdown_response::format_player_turn,
+    markdown_response::{format_access_error, format_player_turn},
 };
 
 /// Command orchestrator for parsing and executing bot commands.
@@ -245,6 +245,27 @@ impl Commander {
     /// ```
     pub fn get_player_turn_message(user_id: &str, player_url: &str) -> String {
         format_player_turn(user_id, player_url)
+    }
+
+    /// Generates a formatted error message for API access errors.
+    ///
+    /// This method creates a user-friendly error message to display when the bot
+    /// encounters authorization or authentication issues while accessing the
+    /// Terraforming Mars API.
+    ///
+    /// # Returns
+    ///
+    /// A formatted string containing the access error message.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use miou::commands::Commander;
+    /// let message = Commander::get_access_error_message();
+    /// assert!(message.contains("unauthorized"));
+    /// ```
+    pub fn get_access_error_message() -> String {
+        format_access_error()
     }
 }
 
@@ -556,5 +577,13 @@ mod tests {
             Commander::get_player_turn_message("@alice:example.com", "http://example.com/player1"),
             "@alice:example.com: it's your turn to play: [http://example.com/player1](http://example.com/player1)."
         )
+    }
+
+    #[test]
+    fn test_get_access_error_message() {
+        assert_eq!(
+            Commander::get_access_error_message(),
+            "Error: unauthorized access to the terraforming mars API"
+        );
     }
 }
