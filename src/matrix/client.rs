@@ -95,7 +95,8 @@ impl MatrixClient {
         client.account().set_display_name(Some("Miou")).await?;
 
         // Set avatar if not already set
-        if client.account().get_avatar_url().await?.is_none()
+        let avatar_url = client.account().get_avatar_url().await.ok().flatten();
+        if avatar_url.is_none()
             && let Err(e) = client
                 .account()
                 .upload_avatar(&mime::IMAGE_PNG, avatar_bytes.to_vec())
