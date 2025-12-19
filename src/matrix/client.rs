@@ -185,8 +185,6 @@ impl MatrixClient {
         let content = RoomMessageEventContent::text_markdown(body)
             .add_mentions(Mentions::with_user_ids([sender]));
 
-        println!("body {}", content.body());
-
         self.send(room_id, content).await;
     }
 
@@ -226,6 +224,36 @@ impl MatrixClient {
         );
 
         self.send(room_id, content).await;
+    }
+
+    /// Broadcasts a message to all rooms the bot has joined.
+    ///
+    /// # Arguments
+    ///
+    /// * `body` - The message content (supports Markdown formatting)
+    ///
+    /// # Behavior
+    ///
+    /// - Sends messages concurrently to all joined rooms
+    /// - Continues sending to other rooms if one fails
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use miou::matrix::client::MatrixClient;
+    /// # async fn example(client: MatrixClient) {
+    /// // Send maintenance notification to all rooms
+    /// client.send_to_all("Bot will restart in 5 minutes for maintenance.").await;
+    /// ```
+    pub async fn send_to_all(&self, body: &str) {
+        let content = RoomMessageEventContent::text_markdown(body);
+        let rooms = self.client.joined_rooms();
+
+        for room in rooms {
+            if let Err(e) = room.send(content.clone()).await {
+                error!("failed to send message to room {}: {:?}", room.room_id(), e);
+            }
+        }
     }
 
     /// Internal helper to send message content to a room.

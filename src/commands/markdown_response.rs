@@ -308,6 +308,27 @@ pub fn format_alerts(alerts: &[(String, Vec<String>)]) -> String {
     format!("Registered alerts:\n\n {}", alerts_md)
 }
 
+/// Formats an error message for API access failures.
+///
+/// Returns an error message indicating that the bot encountered authorization
+/// or authentication issues while trying to access the Terraforming Mars API.
+///
+/// # Returns
+///
+/// A Markdown-formatted string containing the access error message.
+///
+/// # Examples
+///
+/// ```
+/// # use miou::commands::markdown_response::format_access_error;
+/// let msg = format_access_error();
+/// assert!(msg.contains("unauthorized"));
+/// assert!(msg.contains("terraforming mars"));
+/// ```
+pub fn format_access_error() -> String {
+    "Error: unauthorized access to the terraforming mars API".to_owned()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -456,5 +477,21 @@ mod tests {
             format_player_turn("@alice:example.com", "http://example.com/player-id1"),
             "@alice:example.com: it's your turn to play: [http://example.com/player-id1](http://example.com/player-id1)."
         )
+    }
+
+    #[test]
+    fn test_format_successful_unregister() {
+        assert_eq!(
+            format_successful_unregister(),
+            "You have been unregistered successfully.",
+        );
+    }
+
+    #[test]
+    fn test_format_access_error() {
+        assert_eq!(
+            format_access_error(),
+            "Error: unauthorized access to the terraforming mars API",
+        );
     }
 }

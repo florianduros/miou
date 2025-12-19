@@ -2,6 +2,13 @@
 //!
 //! This module provides the [`TMarsRequester`] struct for making HTTP requests
 //! to the Terraforming Mars server and retrieving game information.
+//!
+//! # HTTP Error Handling
+//!
+//! All HTTP methods use `.error_for_status()` to convert HTTP error responses
+//! (4xx and 5xx status codes) into Rust errors. This ensures that authentication
+//! failures (401), authorization failures (403), and server errors (5xx) are
+//! properly detected and can be handled by calling code.
 
 use log::{debug, info};
 use mockall::automock;
@@ -35,10 +42,22 @@ pub struct TMarsRequester {
 #[automock]
 pub trait Requester {
     /// Fetches the list of active games.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error with status code if the server responds with 4xx or 5xx.
     async fn get_games(&self) -> Result<Vec<GameResponse>, Error>;
     /// Fetches detailed information about a specific game.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error with status code if the server responds with 4xx or 5xx.
     async fn get_game_details(&self, game_id: &str) -> Result<GameDetail, Error>;
     /// Fetches the list of players being waited for in a game.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error with status code if the server responds with 4xx or 5xx.
     async fn get_waited_players(&self, player_id: &str) -> Result<WaitingForResponse, Error>;
     /// Constructs the URL for a specific player.
     fn get_player_url(&self, player_id: &str) -> String;
@@ -74,6 +93,10 @@ impl Requester for TMarsRequester {
     /// This method transforms this json into a [`GameResponse`] vector.
     /// ParticipantIds are ignored because [`Self::get_game_details`] includes them.
     ///
+    /// # Errors
+    ///
+    /// Returns a [`reqwest::Error`] with status code for HTTP errors (4xx, 5xx).
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -91,6 +114,7 @@ impl Requester for TMarsRequester {
             .query(&[("serverId", &self.server_id)])
             .send()
             .await?
+            .error_for_status()?
             .json()
             .await?;
 
@@ -118,6 +142,10 @@ impl Requester for TMarsRequester {
     ///
     /// * `game_id` - The unique identifier of the game to get details for.
     ///
+    /// # Errors
+    ///
+    /// Returns a [`reqwest::Error`] with status code for HTTP errors (4xx, 5xx).
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -135,6 +163,7 @@ impl Requester for TMarsRequester {
             .query(&[("id", game_id)])
             .send()
             .await?
+            .error_for_status()?
             .json()
             .await?;
 
@@ -160,6 +189,10 @@ impl Requester for TMarsRequester {
     ///
     /// * `player_id` - The spectator id to get the waited players for.
     ///
+    /// # Errors
+    ///
+    /// Returns a [`reqwest::Error`] with status code for HTTP errors (4xx, 5xx).
+    ///
     /// # Examples
     ////
     /// ```no_run
@@ -180,6 +213,7 @@ impl Requester for TMarsRequester {
             .query(&[("id", player_id)])
             .send()
             .await?
+            .error_for_status()?
             .json()
             .await?;
 
@@ -295,5 +329,112 @@ mod tests {
             tmars_requester.get_player_url("123"),
             "http://tmars.server/player?id=123"
         )
+    }
+
+    #[tokio::test]
+    async fn test_get_games_with_401_unauthorized() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let server_id = "invalid_id";
+
+        server
+            .mock("GET", "/api/games")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "serverId".to_owned(),
+                server_id.to_owned(),
+            ))
+            .with_status(401)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error": "Unauthorized"}"#)
+            .create_async()
+            .await;
+
+        let tmars_requester = TMarsRequester::new(&url, server_id);
+        let result = tmars_requester.get_games().await;
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.status(), Some(reqwest::StatusCode::UNAUTHORIZED));
+    }
+
+    #[tokio::test]
+    async fn test_get_game_details_with_401_unauthorized() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let game_id = "game1";
+
+        server
+            .mock("GET", "/api/game")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "id".to_owned(),
+                game_id.to_owned(),
+            ))
+            .with_status(401)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error": "Unauthorized"}"#)
+            .create_async()
+            .await;
+
+        let tmars_requester = TMarsRequester::new(&url, "server_id");
+        let result = tmars_requester.get_game_details(game_id).await;
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.status(), Some(reqwest::StatusCode::UNAUTHORIZED));
+    }
+
+    #[tokio::test]
+    async fn test_get_waited_players_with_401_unauthorized() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let spectator_id = "specId";
+
+        server
+            .mock("GET", "/api/waitingfor")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "id".to_owned(),
+                spectator_id.to_owned(),
+            ))
+            .with_status(401)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error": "Unauthorized"}"#)
+            .create_async()
+            .await;
+
+        let tmars_requester = TMarsRequester::new(&url, "server_id");
+        let result = tmars_requester.get_waited_players(spectator_id).await;
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.status(), Some(reqwest::StatusCode::UNAUTHORIZED));
+    }
+
+    #[tokio::test]
+    async fn test_get_games_with_500_server_error() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let server_id = "test_id";
+
+        server
+            .mock("GET", "/api/games")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "serverId".to_owned(),
+                server_id.to_owned(),
+            ))
+            .with_status(500)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error": "Internal Server Error"}"#)
+            .create_async()
+            .await;
+
+        let tmars_requester = TMarsRequester::new(&url, server_id);
+        let result = tmars_requester.get_games().await;
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(
+            err.status(),
+            Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR)
+        );
     }
 }

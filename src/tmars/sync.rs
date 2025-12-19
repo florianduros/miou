@@ -3,12 +3,14 @@
 //! This module provides the [`TMarsSync`] struct that manages periodic
 //! synchronization with the TMars server to keep game state up to date.
 
+use crate::tmars::SyncError;
 use crate::tmars::requester::Requester;
 use crate::tmars::response_structs::{GameDetail, PlayerDetail};
 use crate::tmars::structs::{Game, Phase, Player};
 use futures::future::join_all;
 
 use log::{debug, error, info, warn};
+use reqwest::StatusCode;
 use std::collections::{HashMap, HashSet};
 
 /// Manages synchronization of game state with the Terraforming Mars server.
@@ -71,9 +73,10 @@ impl<R: Requester> TMarsSync<R> {
     /// tmars_sync.sync().await;
     /// # }
     /// ```
-    pub async fn sync(&mut self) {
-        self.pool_games().await;
+    pub async fn sync(&mut self) -> Result<(), SyncError> {
+        self.pool_games().await?;
         self.pool_waited_players().await;
+        Ok(())
     }
 
     /// Fetches all games from the server and updates internal state.
@@ -98,10 +101,9 @@ impl<R: Requester> TMarsSync<R> {
     /// tmars_sync.pool_games().await;
     /// # }
     /// ```
-    async fn pool_games(&mut self) {
+    async fn pool_games(&mut self) -> Result<(), SyncError> {
         info!("request games from tmars server");
-        let game_details = self.request_games().await;
-
+        let game_details = self.request_games().await?;
         // Clear existing games to avoid stale data
         self.games.clear();
 
@@ -137,6 +139,7 @@ impl<R: Requester> TMarsSync<R> {
 
         debug!("all games {:?}", self.games);
         info!("finished requesting games from tmars server");
+        Ok(())
     }
 
     /// Requests the list of games and fetches details for each.
@@ -161,12 +164,22 @@ impl<R: Requester> TMarsSync<R> {
     /// println!("Game details: {:?}", game_details);
     /// # }
     /// ```
-    async fn request_games(&self) -> Vec<GameDetail> {
+    async fn request_games(&self) -> Result<Vec<GameDetail>, SyncError> {
         // Request list of games
         let game_ids = match self.tmars_requester.get_games().await {
             Ok(games) => games,
-            Err(e) => {
-                error!("error while requesting games: {}", e);
+            Err(err) => {
+                error!("error while requesting games: {}", err);
+                // Check for access errors
+                if let Some(status_code) = err.status()
+                    && matches!(
+                        status_code,
+                        StatusCode::FORBIDDEN | StatusCode::UNAUTHORIZED
+                    )
+                {
+                    return Err(SyncError::AccessError);
+                }
+
                 vec![]
             }
         };
@@ -180,7 +193,7 @@ impl<R: Requester> TMarsSync<R> {
         .await;
 
         // Filter out errors and collect valid game details
-        game_details
+        let filtered_game_details = game_details
             .into_iter()
             // Keep only successful game detail responses
             .filter_map(|g| match g {
@@ -190,7 +203,9 @@ impl<R: Requester> TMarsSync<R> {
                     None
                 }
             })
-            .collect()
+            .collect();
+
+        Ok(filtered_game_details)
     }
 
     /// Converts a phase string from the API into a [`Phase`] enum.
@@ -513,7 +528,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Test pool_games method
-        tmars_sync.pool_games().await;
+        tmars_sync.pool_games().await.unwrap();
 
         // Verify that games have been populated correctly
         assert_eq!(tmars_sync.games.len(), 2);
@@ -759,7 +774,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Call sync
-        tmars_sync.sync().await;
+        tmars_sync.sync().await.unwrap();
 
         // Verify games were synced
         let games = tmars_sync.get_games();
@@ -787,7 +802,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Call pool_games - should handle error gracefully
-        tmars_sync.pool_games().await;
+        tmars_sync.pool_games().await.unwrap();
 
         // Verify that games map is empty due to error
         assert_eq!(tmars_sync.games.len(), 0);
@@ -844,7 +859,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Call pool_games
-        tmars_sync.pool_games().await;
+        tmars_sync.pool_games().await.unwrap();
 
         // Verify that only game2 was added (game1 failed)
         assert_eq!(tmars_sync.games.len(), 1);
@@ -910,7 +925,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Call pool_games
-        tmars_sync.pool_games().await;
+        tmars_sync.pool_games().await.unwrap();
 
         // Verify that only game2 was added (game1 is ended)
         assert_eq!(tmars_sync.games.len(), 1);
@@ -1114,7 +1129,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Call sync
-        tmars_sync.sync().await;
+        tmars_sync.sync().await.unwrap();
 
         // Verify game was added but waited players is empty
         let games = tmars_sync.get_games();
@@ -1219,7 +1234,7 @@ mod tests {
         let mut tmars_sync = TMarsSync::new(mock_requester);
 
         // Add game1
-        tmars_sync.pool_games().await;
+        tmars_sync.pool_games().await.unwrap();
         assert_eq!(tmars_sync.games.len(), 1);
         assert!(tmars_sync.games.contains_key("game1"));
 
@@ -1241,9 +1256,67 @@ mod tests {
             .returning(|| Ok(vec![]));
 
         tmars_sync.tmars_requester = mock_requester2;
-        tmars_sync.pool_games().await;
+        tmars_sync.pool_games().await.unwrap();
 
         // Verify games were cleared (both game1 and game2 should be gone)
         assert_eq!(tmars_sync.games.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_sync_with_unauthorized_error() {
+        // Create a mock server to return 401 Unauthorized
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+
+        server
+            .mock("GET", "/api/games")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "serverId".to_string(),
+                "test_id".to_string(),
+            ))
+            .with_status(401)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error": "Unauthorized"}"#)
+            .create_async()
+            .await;
+
+        // Use real requester pointing to mock server
+        let real_requester = crate::tmars::requester::TMarsRequester::new(&url, "test_id");
+        let mut tmars_sync = TMarsSync::new(real_requester);
+
+        // Call sync and expect AccessError to propagate
+        let result = tmars_sync.sync().await;
+
+        assert!(result.is_err(), "Expected AccessError, got: {:?}", result);
+        assert!(matches!(result.unwrap_err(), SyncError::AccessError));
+    }
+
+    #[tokio::test]
+    async fn test_sync_with_forbidden_error() {
+        // Create a mock server to return 403 Forbidden
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+
+        server
+            .mock("GET", "/api/games")
+            .match_query(mockito::Matcher::UrlEncoded(
+                "serverId".to_string(),
+                "test_id".to_string(),
+            ))
+            .with_status(403)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error": "Forbidden"}"#)
+            .create_async()
+            .await;
+
+        // Use real requester pointing to mock server
+        let real_requester = crate::tmars::requester::TMarsRequester::new(&url, "test_id");
+        let mut tmars_sync = TMarsSync::new(real_requester);
+
+        // Call sync and expect AccessError to propagate
+        let result = tmars_sync.sync().await;
+
+        assert!(result.is_err(), "Expected AccessError, got: {:?}", result);
+        assert!(matches!(result.unwrap_err(), SyncError::AccessError));
     }
 }
