@@ -23,14 +23,17 @@ use crate::tmars::Game;
 /// assert!(help.contains("Commands:"));
 /// ```
 pub fn format_help() -> String {
-    let body = "Commands:\n\
+    let body = format!(
+        "Commands:\n\
         - `games`: list all the ongoing games\n\
         - `alerts`: list your registered alerts\n\
         - `register <game_id> <player_name> <delay_in_minutes>`: register a new alert\n\
         - `unregister <game_id>`: unregister an alert\n\
         - `help`: show this help message\n\n\
         Alert sends a mention to the registered user when their turn to play arrives, following the delay set in the register argument.\n\
-        > *miou* is a free open source terraforming mars bot. Source code is available on [Github](https://github.com/florianduros/miou).";
+        > miou({}) is a free open source terraforming mars bot. Source code is available on [Github](https://github.com/florianduros/miou).",
+        env!("CARGO_PKG_VERSION"),
+    );
 
     body.to_owned()
 }
