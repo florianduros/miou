@@ -94,7 +94,7 @@
 
 use clap::Parser;
 use env_logger::Env;
-use log::error;
+use log::{error, info};
 
 use crate::{bot::Bot, config::Config};
 
@@ -254,6 +254,8 @@ async fn main() {
     // Put logger at info level by default
     let env = Env::default().filter_or("RUST_LOG", "info");
     env_logger::init_from_env(env);
+
+    info!("Starting miou {}...", env!("CARGO_PKG_VERSION"));
 
     // Parse command line arguments
     let args = Args::parse();
