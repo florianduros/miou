@@ -25,11 +25,17 @@ jobs:
       - name: Build documentation
         run: cargo doc --no-deps
 
+      # We can't only deploy miou folder because the stylesheets are in the parent folder
+      # So we create a redirecting homepage instead
+      - name: Update documentation homepage
+        run: |
+          echo '<meta http-equiv="refresh" content="0; url=miou/index.html" />' > target/doc/index.html
+
       - name: Upload static files as artifact
         id: deployment
         uses: actions/upload-pages-artifact@v4
         with:
-          path: target/doc/miou
+          path: target/doc
   # From https://github.com/actions/deploy-pages
   deploy:
     environment:
