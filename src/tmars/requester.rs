@@ -11,6 +11,7 @@
 //! properly detected and can be handled by calling code.
 
 use log::{debug, info};
+#[cfg(test)]
 use mockall::automock;
 use reqwest::{Client, Error};
 
@@ -39,7 +40,7 @@ pub struct TMarsRequester {
 /// Trait for making requests to the TMars server.
 ///
 /// This trait abstracts the HTTP operations for easier testing with mocks.
-#[automock]
+#[cfg_attr(test, automock)]
 pub trait Requester {
     /// Fetches the list of active games.
     ///
