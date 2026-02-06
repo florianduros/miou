@@ -68,7 +68,7 @@ use crate::{
     utils::get_path,
 };
 use std::{sync::Arc, time::Duration};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 
 /// Context for processing a Matrix message.
 ///
@@ -88,7 +88,7 @@ struct MessageContext {
     /// Thread-safe reference to the TMars sync service
     tmars_sync: Arc<Mutex<TMarsSync<TMarsRequester>>>,
     /// Thread-safe reference to the alert controller for managing notifications
-    alert_controller: Arc<Mutex<AlertController>>,
+    alert_controller: Arc<RwLock<AlertController>>,
     /// Thread-safe reference to the command handler
     commander: Arc<Commander>,
 }
@@ -191,7 +191,7 @@ pub struct Bot {
     /// - Thread handles for pending notification tasks
     ///
     /// These are updated during alert registration/removal and when notifications fire.
-    alert_controller: Arc<Mutex<AlertController>>,
+    alert_controller: Arc<RwLock<AlertController>>,
 
     /// Command parser and executor.
     ///
@@ -283,7 +283,7 @@ impl Bot {
             .await?,
         );
 
-        let alert_controller = Arc::new(Mutex::new(
+        let alert_controller = Arc::new(RwLock::new(
             AlertController::new(get_path(&args.data, "alerts")).await,
         ));
 
@@ -359,7 +359,7 @@ impl Bot {
         let alert_controller = Arc::clone(&self.alert_controller);
         let polling_interval = self.polling_interval;
 
-        self.alert_controller.lock().await.start_persistence_task();
+        self.alert_controller.read().await.start_persistence_task();
 
         // Start tmars sync in a separate task to not block matrix sync
         self.start_tmars_sync_task(
@@ -424,7 +424,7 @@ impl Bot {
         &self,
         matrix_client: Arc<MatrixClient>,
         tmars_sync: Arc<Mutex<TMarsSync<TMarsRequester>>>,
-        alert_controller: Arc<Mutex<AlertController>>,
+        alert_controller: Arc<RwLock<AlertController>>,
         polling_interval: u64,
     ) {
         tokio::spawn(async move {
@@ -468,7 +468,7 @@ impl Bot {
                     }
                 };
                 alert_controller
-                    .lock()
+                    .write()
                     .await
                     .update_alerts(&games_map, on_alert_to_fire)
                     .await;
@@ -527,7 +527,7 @@ impl Bot {
                 room_id: ctx.room_id.clone(),
                 user_id: ctx.sender_id.clone(),
                 games_map: ctx.tmars_sync.lock().await.get_games(),
-                alerts_map: ctx.alert_controller.lock().await.get_alerts_map().await,
+                alerts_map: ctx.alert_controller.read().await.get_alerts_map().await,
             };
 
             // Parse command with context
@@ -540,14 +540,14 @@ impl Bot {
             // Update alerts map based on command result
             if let Some((game_id, alert)) = command_result.alert_to_add {
                 ctx.alert_controller
-                    .lock()
+                    .read()
                     .await
                     .add_alert(&game_id, &alert)
                     .await;
             }
             if let Some((game_id, room_id, user_id)) = command_result.alerts_to_remove {
                 ctx.alert_controller
-                    .lock()
+                    .write()
                     .await
                     .remove_alerts(&game_id, &room_id, &user_id)
                     .await;
