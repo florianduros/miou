@@ -132,7 +132,7 @@ fn validate_and_get_player(
 ///
 /// - `Some(CommandResult)`: Always returns a result (success or error message)
 /// - `None`: Only if the command is not a `Register` variant
-pub async fn handle_register(context: &CommandContext, command: &Command) -> Option<CommandResult> {
+pub fn handle_register(context: &CommandContext, command: &Command) -> Option<CommandResult> {
     debug!("handling register command: {:?}", command);
 
     let (game_id, player_name, delay) = match command {
@@ -334,13 +334,13 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_handle_register_successful() {
+    #[test]
+    fn test_handle_register_successful() {
         let game = create_test_game("game1", vec![("player1", "Alice", "red")]);
         let context = create_test_context(vec![game]);
         let command = Command::Register("game1".to_string(), "Alice".to_string(), 60);
 
-        let result = handle_register(&context, &command).await;
+        let result = handle_register(&context, &command);
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -357,13 +357,13 @@ mod tests {
         assert!(!alert.notified);
     }
 
-    #[tokio::test]
-    async fn test_handle_register_invalid_delay_zero() {
+    #[test]
+    fn test_handle_register_invalid_delay_zero() {
         let game = create_test_game("game1", vec![("player1", "Alice", "red")]);
         let context = create_test_context(vec![game]);
         let command = Command::Register("game1".to_string(), "Alice".to_string(), 0);
 
-        let result = handle_register(&context, &command).await;
+        let result = handle_register(&context, &command);
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -372,12 +372,12 @@ mod tests {
         assert!(result.alerts_to_remove.is_none());
     }
 
-    #[tokio::test]
-    async fn test_handle_register_game_not_found() {
+    #[test]
+    fn test_handle_register_game_not_found() {
         let context = create_test_context(vec![]);
         let command = Command::Register("game999".to_string(), "Alice".to_string(), 60);
 
-        let result = handle_register(&context, &command).await;
+        let result = handle_register(&context, &command);
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -386,13 +386,13 @@ mod tests {
         assert!(result.alerts_to_remove.is_none());
     }
 
-    #[tokio::test]
-    async fn test_handle_register_player_not_found() {
+    #[test]
+    fn test_handle_register_player_not_found() {
         let game = create_test_game("game1", vec![("player1", "Alice", "red")]);
         let context = create_test_context(vec![game]);
         let command = Command::Register("game1".to_string(), "Bob".to_string(), 60);
 
-        let result = handle_register(&context, &command).await;
+        let result = handle_register(&context, &command);
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -401,13 +401,13 @@ mod tests {
         assert!(result.alerts_to_remove.is_none());
     }
 
-    #[tokio::test]
-    async fn test_handle_register_wrong_command_type() {
+    #[test]
+    fn test_handle_register_wrong_command_type() {
         let game = create_test_game("game1", vec![("player1", "Alice", "red")]);
         let context = create_test_context(vec![game]);
         let command = Command::Help;
 
-        let result = handle_register(&context, &command).await;
+        let result = handle_register(&context, &command);
 
         assert!(result.is_none());
     }
