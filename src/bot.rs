@@ -454,7 +454,7 @@ impl Bot {
                     move |alert: Alert| {
                         let matrix_client = Arc::clone(&matrix_client);
                         tokio::spawn(async move {
-                            let _ = matrix_client
+                            matrix_client
                                 .send_mention(
                                     &alert.room_id,
                                     &Commander::get_player_turn_message(

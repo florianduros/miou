@@ -409,11 +409,6 @@ impl AlertController {
     /// - If the game ID doesn't exist: returns without error
     /// - Otherwise: removes all alerts matching the room_id AND user_id
     ///
-    /// # Note
-    ///
-    /// This does NOT abort pending notification tasks. Those should be cleaned up
-    /// by the next call to `update_alerts`.
-    ///
     /// # Examples
     ///
     /// ```no_run
@@ -429,13 +424,23 @@ impl AlertController {
     /// ).await;
     /// # }
     /// ```
-    pub async fn remove_alerts(&self, game_id: &str, room_id: &str, user_id: &str) {
+    pub async fn remove_alerts(&mut self, game_id: &str, room_id: &str, user_id: &str) {
         let mut alerts_map = self.alerts_map.lock().await;
 
         let alerts = match alerts_map.get_mut(game_id) {
             Some(alerts) => alerts,
             None => return,
         };
+
+        // Abort pending notification tasks for alerts being removed
+        for alert in alerts.iter() {
+            if alert.room_id == room_id
+                && alert.user_id == user_id
+                && let Some((_, handle)) = self.thread_handles_map.remove_entry(alert)
+            {
+                handle.abort();
+            }
+        }
 
         // Remove all the user alerts in this room for this game
         alerts.retain(|alert| alert.room_id != *room_id || alert.user_id != *user_id);
@@ -621,7 +626,7 @@ mod tests {
     async fn test_remove_alerts_removes_matching_alerts() {
         let temp_file = NamedTempFile::new().unwrap();
         let path = temp_file.path().to_str().unwrap().to_string();
-        let controller = AlertController::new(path).await;
+        let mut controller = AlertController::new(path).await;
 
         let alert = create_test_alert(
             "!room1:example.com",
@@ -644,7 +649,7 @@ mod tests {
     async fn test_remove_alerts_keeps_different_users() {
         let temp_file = NamedTempFile::new().unwrap();
         let path = temp_file.path().to_str().unwrap().to_string();
-        let controller = AlertController::new(path).await;
+        let mut controller = AlertController::new(path).await;
 
         let alert1 = create_test_alert(
             "!room1:example.com",
@@ -679,7 +684,7 @@ mod tests {
     async fn test_remove_alerts_keeps_different_rooms() {
         let temp_file = NamedTempFile::new().unwrap();
         let path = temp_file.path().to_str().unwrap().to_string();
-        let controller = AlertController::new(path).await;
+        let mut controller = AlertController::new(path).await;
 
         let alert1 = create_test_alert(
             "!room1:example.com",
@@ -714,7 +719,7 @@ mod tests {
     async fn test_remove_alerts_nonexistent_game() {
         let temp_file = NamedTempFile::new().unwrap();
         let path = temp_file.path().to_str().unwrap().to_string();
-        let controller = AlertController::new(path).await;
+        let mut controller = AlertController::new(path).await;
 
         // Should not panic
         controller

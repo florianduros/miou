@@ -207,11 +207,11 @@ impl Commander {
     ) -> Option<CommandResult> {
         let result = match command {
             Command::Help => handle_help(),
-            Command::Register(_, _, _) => match handle_register(context, command).await {
+            Command::Register(_, _, _) => match handle_register(context, command) {
                 Some(result) => result,
                 None => return None,
             },
-            Command::Unregister(_) => match handle_unregister(context, command).await {
+            Command::Unregister(_) => match handle_unregister(context, command) {
                 Some(result) => result,
                 None => return None,
             },

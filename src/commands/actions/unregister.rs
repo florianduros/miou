@@ -32,10 +32,7 @@ use crate::commands::{
 ///
 /// - `Some(CommandResult)`: Success message with `alerts_to_remove` containing (game_id, room_id, user_id)
 /// - `None`: Only if the command is not an `Unregister` variant
-pub async fn handle_unregister(
-    context: &CommandContext,
-    command: &Command,
-) -> Option<CommandResult> {
+pub fn handle_unregister(context: &CommandContext, command: &Command) -> Option<CommandResult> {
     debug!("handling unregister command: {:?}", command);
 
     let game_id = match command {
@@ -76,12 +73,12 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_handle_unregister_successful() {
+    #[test]
+    fn test_handle_unregister_successful() {
         let context = create_test_context();
         let command = Command::Unregister("game123".to_string());
 
-        let result = handle_unregister(&context, &command).await;
+        let result = handle_unregister(&context, &command);
 
         assert!(result.is_some());
         let result = result.unwrap();
@@ -95,12 +92,12 @@ mod tests {
         assert_eq!(user_id, "@test_user:matrix.org");
     }
 
-    #[tokio::test]
-    async fn test_handle_unregister_wrong_command_type_help() {
+    #[test]
+    fn test_handle_unregister_wrong_command_type_help() {
         let context = create_test_context();
         let command = Command::Help;
 
-        let result = handle_unregister(&context, &command).await;
+        let result = handle_unregister(&context, &command);
 
         assert!(result.is_none());
     }
