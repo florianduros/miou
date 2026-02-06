@@ -77,19 +77,17 @@ impl MatrixClient {
         session_path: &str,
         avatar_bytes: &[u8],
     ) -> Result<Self, anyhow::Error> {
-        let matrix_session_result = MatrixSession::new(session_path).await;
-        if matrix_session_result.is_err() {
-            error!("failed to create matrix session");
-            return Err(anyhow::anyhow!("failed to create matrix session"));
-        }
-        let matrix_session = matrix_session_result.unwrap();
+        let matrix_session = MatrixSession::new(session_path).await.map_err(|e| {
+            error!("failed to create matrix session: {e}");
+            anyhow::anyhow!("failed to create matrix session: {e}")
+        })?;
 
-        let client_result = setup_client(user_credentials, &matrix_session).await;
-        if client_result.is_err() {
-            error!("failed to setup matrix client: {:?}", client_result);
-            return Err(anyhow::anyhow!("failed to setup matrix client"));
-        }
-        let client = client_result.unwrap();
+        let client = setup_client(user_credentials, &matrix_session)
+            .await
+            .map_err(|e| {
+                error!("failed to setup matrix client: {e}");
+                anyhow::anyhow!("failed to setup matrix client: {e}")
+            })?;
 
         // Set display name
         client.account().set_display_name(Some("Miou")).await?;
