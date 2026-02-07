@@ -249,6 +249,7 @@ struct Args {
 /// export MIOU_MATRIX__PASSPHRASE="your-passphrase"
 /// miou --config config.yaml --data ./miou-data
 /// ```
+/// test
 #[tokio::main]
 async fn main() {
     // Put logger at info level by default
