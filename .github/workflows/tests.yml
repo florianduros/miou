@@ -27,7 +27,7 @@ jobs:
 
       - id: setup
         name: Setup Toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly
           components: llvm-tools-preview

@@ -1,6 +1,6 @@
 # Stage 1: Builder
 # Use a specific Rust version with alpine
-FROM rust:1.91-alpine AS chef
+FROM rust:1.93-alpine AS chef
 RUN cargo install cargo-chef
 
 # Set the working directory inside the container
