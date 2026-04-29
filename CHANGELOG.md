@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/florianduros/miou/compare/v0.1.2...v0.1.3)
+
+### Other
+
+
+- *(deps)* Bump rand from 0.8.5 to 0.8.6 - ([37734e5](https://github.com/florianduros/miou/commit/37734e5c0caf2ee9d95db592bf37dadb46d79d43))
+- *(deps)* Bump the dependencies group with 2 updates - ([1bbd8eb](https://github.com/florianduros/miou/commit/1bbd8ebb19e50ef77ad1308dc0a02ed15bb8886c))
+- *(deps)* Bump the dependencies group with 3 updates - ([aacf317](https://github.com/florianduros/miou/commit/aacf3172d91e1e27f8fecc131340914f409caa50))
+- *(deps)* Bump the dependencies group across 1 directory with 10 updates - ([7f58d22](https://github.com/florianduros/miou/commit/7f58d223112b2d1afe6bdfce0f6bb0e234efa84b))
+- Use rust toolchain 1.93.1 - ([8f927e4](https://github.com/florianduros/miou/commit/8f927e41c94424497435f32bfc0fd1d54af0fb54))
+- Use toyko rw instead of mutex - ([c2dec4d](https://github.com/florianduros/miou/commit/c2dec4df5d817cc6833a6a8e3ea4f3bc8bfda471))
+- Merge branch 'main' into dependabot/cargo/dependencies-e1dd654884 - ([84be002](https://github.com/florianduros/miou/commit/84be002ccaee25420ab60c832a2895c997ca6d25))
+- Move mockito to dev deps - ([3d8b13e](https://github.com/florianduros/miou/commit/3d8b13ea350b79dc87ac9ddeade388c955e84431))
+
+
 ## [0.1.2](https://github.com/florianduros/miou/compare/v0.1.1...v0.1.2)
 
 ### Added
