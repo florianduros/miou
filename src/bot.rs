@@ -64,7 +64,7 @@ use crate::{
     commands::{CommandContext, CommandParseError, Commander},
     config::Config,
     matrix::{MatrixClient, UserCredentials},
-    tmars::{TMarsRequester, TMarsSync},
+    tmars::{SyncError, TMarsRequester, TMarsSync},
     utils::get_path,
 };
 use std::{sync::Arc, time::Duration};
@@ -438,13 +438,21 @@ impl Bot {
                 interval.tick().await;
 
                 // Perform sync
-                // If an error occurs, log it, notify all rooms, and stop the sync task
-                if tmars_sync.lock().await.sync().await.is_err() {
-                    log::error!("stop tmars sync task due to error");
-                    matrix_client
-                        .send_to_all(&Commander::get_access_error_message())
-                        .await;
-                    break;
+                // On access errors, notify all rooms and stop the sync task.
+                // On temporary unavailability, skip this cycle and retry next interval.
+                match tmars_sync.lock().await.sync().await {
+                    Err(SyncError::AccessError) => {
+                        log::error!("stop tmars sync task due to access error");
+                        matrix_client
+                            .send_to_all(&Commander::get_access_error_message())
+                            .await;
+                        break;
+                    }
+                    Err(SyncError::Unavailable) => {
+                        log::error!("tmars server unavailable, skipping sync cycle");
+                        continue;
+                    }
+                    Ok(()) => {}
                 }
 
                 let games_map = tmars_sync.lock().await.get_games();

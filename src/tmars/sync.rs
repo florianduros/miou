@@ -180,7 +180,7 @@ impl<R: Requester> TMarsSync<R> {
                     return Err(SyncError::AccessError);
                 }
 
-                vec![]
+                return Err(SyncError::Unavailable);
             }
         };
 
@@ -793,19 +793,44 @@ mod tests {
     async fn test_pool_games_with_get_games_error() {
         let mut mock_requester = MockRequester::new();
 
-        // Mock get_games to return an error
+        // First call: populate games successfully
+        mock_requester.expect_get_games().times(1).returning(|| {
+            Ok(vec![GameResponse {
+                game_id: "game1".to_owned(),
+            }])
+        });
         mock_requester
+            .expect_get_game_details()
+            .with(mockall::predicate::eq("game1"))
+            .times(1)
+            .returning(|_| {
+                Ok(GameDetail {
+                    id: "game1".to_owned(),
+                    phase: "action".to_owned(),
+                    spectator_id: "spec1".to_owned(),
+                    players: vec![],
+                })
+            });
+
+        let mut tmars_sync = TMarsSync::new(mock_requester);
+        tmars_sync.pool_games().await.unwrap();
+        assert_eq!(tmars_sync.games.len(), 1);
+
+        // Second call: server is unavailable — existing games should be preserved
+        let mut mock_requester2 = MockRequester::new();
+        mock_requester2
             .expect_get_games()
             .times(1)
             .returning(|| Err(create_mock_error()));
+        tmars_sync.tmars_requester = mock_requester2;
 
-        let mut tmars_sync = TMarsSync::new(mock_requester);
-
-        // Call pool_games - should handle error gracefully
-        tmars_sync.pool_games().await.unwrap();
-
-        // Verify that games map is empty due to error
-        assert_eq!(tmars_sync.games.len(), 0);
+        let result = tmars_sync.pool_games().await;
+        assert!(matches!(result, Err(SyncError::Unavailable)));
+        assert_eq!(
+            tmars_sync.games.len(),
+            1,
+            "existing games must be preserved on unavailability"
+        );
     }
 
     #[tokio::test]
