@@ -41,6 +41,7 @@ pub use crate::tmars::sync::TMarsSync;
 /// # Variants
 ///
 /// * `AccessError` - Authentication or authorization failure (HTTP 401/403)
+/// * `Unavailable` - Temporary network or server error (non-auth failures)
 #[derive(Debug)]
 pub enum SyncError {
     /// Authentication or authorization failure.
@@ -48,4 +49,10 @@ pub enum SyncError {
     /// Returned when the TMars API responds with HTTP 401 (Unauthorized) or
     /// HTTP 403 (Forbidden) status codes.
     AccessError,
+    /// Temporary server or network unavailability.
+    ///
+    /// Returned when the TMars API is unreachable or returns a non-auth error.
+    /// The bot should retain existing game state and alerts until the server
+    /// becomes available again.
+    Unavailable,
 }
