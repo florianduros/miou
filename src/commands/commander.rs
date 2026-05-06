@@ -575,7 +575,7 @@ mod tests {
     fn test_get_player_turn_message() {
         assert_eq!(
             Commander::get_player_turn_message("@alice:example.com", "http://example.com/player1"),
-            "@alice:example.com: it's your turn to play: [http://example.com/player1](http://example.com/player1)."
+            "[@alice:example.com](https://matrix.to/#/@alice:example.com): it's your turn to play: [http://example.com/player1](http://example.com/player1)."
         )
     }
 
