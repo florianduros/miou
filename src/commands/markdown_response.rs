@@ -264,13 +264,13 @@ pub fn format_successful_unregister() -> String {
 ///
 /// ```
 /// # use miou::commands::markdown_response::format_player_turn;
-/// let msg = format_player_turn("https://example.com/player?id=p123".to_string());
+/// let msg = format_player_turn("@alice:example.com", "https://example.com/player?id=p123");
 /// assert!(msg.contains("turn to play"));
+/// assert!(msg.contains("https://matrix.to/#/@alice:example.com"));
 /// ```
 pub fn format_player_turn(user_id: &str, player_url: &str) -> String {
     format!(
-        "{}: it's your turn to play: [{}]({}).",
-        user_id, player_url, player_url
+        "[{user_id}](https://matrix.to/#/{user_id}): it's your turn to play: [{player_url}]({player_url})."
     )
 }
 
@@ -478,7 +478,7 @@ mod tests {
     fn test_format_player_turn() {
         assert_eq!(
             format_player_turn("@alice:example.com", "http://example.com/player-id1"),
-            "@alice:example.com: it's your turn to play: [http://example.com/player-id1](http://example.com/player-id1)."
+            "[@alice:example.com](https://matrix.to/#/@alice:example.com): it's your turn to play: [http://example.com/player-id1](http://example.com/player-id1)."
         )
     }
 
