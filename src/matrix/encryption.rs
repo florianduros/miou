@@ -77,7 +77,7 @@ async fn bootstrap_cross_signing(
     {
         let response = e.as_uiaa_response().unwrap();
         let mut password = uiaa::Password::new(
-            uiaa::UserIdentifier::UserIdOrLocalpart(user_id.to_owned()),
+            uiaa::UserIdentifier::Matrix(uiaa::MatrixUserIdentifier::new(user_id.to_owned())),
             password.to_owned(),
         );
         password.session = response.session.clone();
