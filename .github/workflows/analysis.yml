@@ -21,9 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Add rustfmt and clippy
-        uses: dtolnay/rust-toolchain@1.93.1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: rustfmt, clippy
       - name: Formatting
         run: cargo fmt -- --check
