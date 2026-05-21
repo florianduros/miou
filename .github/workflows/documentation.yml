@@ -10,7 +10,7 @@ jobs:
   # From https://github.com/actions/upload-pages-artifact
   build:
     # Only for tags on main branch
-    if: github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/') && github.event.base_ref == 'refs/heads/main'
     concurrency:
       group: ${{ github.ref }}-documentation
       cancel-in-progress: true
