@@ -1,7 +1,7 @@
 [package]
 authors = ["Florian Duros <florian.duros@ormaz.fr>"]
 name = "miou"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 repository = "https://github.com/florianduros/miou"
 homepage = "https://github.com/florianduros/miou"

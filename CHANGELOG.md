@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/florianduros/miou/compare/v0.1.3...v0.1.4)
+
+### Fixed
+
+
+- Remove style param for release badge - ([ce37a78](https://github.com/florianduros/miou/commit/ce37a7807628378264658ee49ed30de380ef214f))
+
+### Other
+
+
+- *(deps)* Bump rust-toolchain from 1.93.1 to 1.95.0 - ([e5cf56e](https://github.com/florianduros/miou/commit/e5cf56e3ab920c72802ab12d3c1d3f8e7fdb2772))
+- *(deps)* Bump tokio from 1.52.1 to 1.52.3 in the dependencies group - ([41fbf9d](https://github.com/florianduros/miou/commit/41fbf9d2eda960865444416530b2880b603e1a00))
+- *(deps)* Bump openssl from 0.10.78 to 0.10.79 - ([e93137b](https://github.com/florianduros/miou/commit/e93137b00c110df5b519809f7a9a58e84ecab1fd))
+- Add back release artifact - ([a2d605f](https://github.com/florianduros/miou/commit/a2d605fa15605e845e77836e94e9d26cb6dc6279))
+- Put openssl as optional vendored deps - ([79ed34d](https://github.com/florianduros/miou/commit/79ed34df9f8254803e87a674ff51f477d25bcd4a))
+- Replace removed `UserIdOrLocalpart` - ([7030cf1](https://github.com/florianduros/miou/commit/7030cf1c294ff1e0f435a980e4165ef96d59b510))
+- Update matrix-sdk to `0.17.0` - ([83efbf9](https://github.com/florianduros/miou/commit/83efbf98a9bf38b1ccfca0f82f20322faa19ec5b))
+
+
 ## [0.1.3](https://github.com/florianduros/miou/compare/v0.1.2...v0.1.3)
 
 ### Fixed
