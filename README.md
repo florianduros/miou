@@ -149,6 +149,16 @@ services:
       - MIOU_MATRIX__PASSPHRASE=your-passphrase
 ```
 
+### Github release
+
+You can download the latest release from the [Releases](https://github.com/florianduros/miou/releases) page.
+
+Run
+
+```bash
+miou --config config.yaml --data ./data
+```
+
 ### From Source
 
 Prerequisites
