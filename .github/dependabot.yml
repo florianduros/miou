@@ -5,6 +5,11 @@ updates:
     # Check for updates every Monday
     schedule:
       interval: "weekly"
+    groups:
+      # Group all GitHub Actions updates into a single pull request
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: rust-toolchain
     directory: "/"
     # Check for updates every Monday
