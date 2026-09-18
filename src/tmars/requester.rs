@@ -105,9 +105,9 @@ impl Requester for TMarsRequester {
     /// println!("Games: {:?}", games);
     /// ```
     async fn get_games(&self) -> Result<Vec<GameResponse>, Error> {
-        let url = format!("{}/api/games", &self.url);
+        let url = format!("{}/api/games", self.url);
         info!("request games");
-        debug!("request {}?serverId={}", &url, &self.server_id);
+        debug!("request {}?serverId={}", url, self.server_id);
 
         let game_responses: Vec<GameResponse> = self
             .client
@@ -119,7 +119,7 @@ impl Requester for TMarsRequester {
             .json()
             .await?;
 
-        debug!("response from {} -> {:?}", &url, &game_responses);
+        debug!("response from {} -> {:?}", url, game_responses);
 
         Ok(game_responses)
     }
@@ -154,9 +154,9 @@ impl Requester for TMarsRequester {
     /// println!("Game detail: {:?}", game_detail);
     /// ```
     async fn get_game_details(&self, game_id: &str) -> Result<GameDetail, Error> {
-        let url = format!("{}/api/game", &self.url);
-        info!("request game details of {}", &game_id);
-        debug!("request {}?id={}", &url, &game_id);
+        let url = format!("{}/api/game", self.url);
+        info!("request game details of {}", game_id);
+        debug!("request {}?id={}", url, game_id);
 
         let game_detail: GameDetail = self
             .client
@@ -168,10 +168,7 @@ impl Requester for TMarsRequester {
             .json()
             .await?;
 
-        debug!(
-            "response from {}?id={} -> {:?}",
-            &url, &game_id, &game_detail
-        );
+        debug!("response from {}?id={} -> {:?}", url, game_id, game_detail);
 
         Ok(game_detail)
     }
@@ -201,12 +198,9 @@ impl Requester for TMarsRequester {
     /// println!("Waiting for players: {:?}", waiting_for);
     /// ```
     async fn get_waited_players(&self, player_id: &str) -> Result<WaitingForResponse, Error> {
-        let url = format!("{}/api/waitingfor", &self.url);
-        info!(
-            "request list of waited players for spectator {}",
-            &player_id
-        );
-        debug!("request {}?id={}", &url, &player_id);
+        let url = format!("{}/api/waitingfor", self.url);
+        info!("request list of waited players for spectator {}", player_id);
+        debug!("request {}?id={}", url, player_id);
 
         let waiting_for_response: WaitingForResponse = self
             .client
@@ -220,14 +214,14 @@ impl Requester for TMarsRequester {
 
         debug!(
             "response from {}?id={} -> {:?}",
-            &url, &player_id, &waiting_for_response
+            url, player_id, waiting_for_response
         );
 
         Ok(waiting_for_response)
     }
 
     fn get_player_url(&self, player_id: &str) -> String {
-        format!("{}/player?id={}", &self.url, player_id)
+        format!("{}/player?id={}", self.url, player_id)
     }
 }
 
