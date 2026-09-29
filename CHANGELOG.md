@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5](https://github.com/florianduros/miou/compare/v0.1.4...v0.1.5)
+
+### Other
+
+
+- *(deps)* Bump reqwest in the dependencies group across 1 directory - ([7ae4009](https://github.com/florianduros/miou/commit/7ae40094ab0d47d86d07e66c9c0cb40cf8b09215))
+- *(deps)* Bump the dependencies group across 1 directory with 7 updates - ([6fc6635](https://github.com/florianduros/miou/commit/6fc6635466f3e01edfec782d183bc6a3a3c99cc0))
+- *(deps)* Bump rust-toolchain from 1.95.0 to 1.96.1 - ([593a84f](https://github.com/florianduros/miou/commit/593a84fe2fa0962a5bcb492e73dae63b0043f4bf))
+- *(deps)* Bump matrix-sdk from 0.17.0 to 0.18.0 - ([eee32b7](https://github.com/florianduros/miou/commit/eee32b7fa9bb52b68a5a3710ab6378207b001a7f))
+- *(deps)* Bump serde_json in the dependencies group - ([4c7d2fa](https://github.com/florianduros/miou/commit/4c7d2fa75d416663ad38ba6519ecc6f1fc008a05))
+- Fix clippy warnings - ([39a5695](https://github.com/florianduros/miou/commit/39a5695a97328a47a50dba3d86d2c2563843493d))
+
+
 ## [0.1.4](https://github.com/florianduros/miou/compare/v0.1.3...v0.1.4)
 
 ### Fixed
