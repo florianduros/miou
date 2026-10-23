@@ -32,7 +32,15 @@ updates:
         # Define patterns to exclude dependencies from the group (based on
         # dependency name)
         exclude-patterns:
-          - "matrix-sdk"
+          - "matrix-sdk*"
+      # Group security updates (often transitive deps in Cargo.lock) into a
+      # single pull request too
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "matrix-sdk*"
     ignore:
       # These are peer deps of Cargo and should not be automatically bumped
       - dependency-name: "semver"
